@@ -1501,7 +1501,7 @@ setLT.RKHS_mtme<-function(LT,n,ntraits,i,y,Sy,nLT,R2,saveAt,response_type,NoWhic
 # Posterior distribution for latent variable in DLN-UT model
 fL<-function(n=NULL,a=NULL,b=NULL,rv=NULL,varE=NULL)
 {
-  return(truncnorm:rtruncnorm(n,a=a,b=b,mean = rv,sd = sqrt(varE)))
+  return(truncnorm::rtruncnorm(n,a=a,b=b,mean = rv,sd = sqrt(varE)))
 }
 
 # Posterior distribution for latent variable in DLN-MT model
@@ -1510,7 +1510,7 @@ lmulti<-function(n = NULL,ntraits = NULL,rv = NULL,SigmaE = NULL,SigmaEInv = NUL
                    Burn_latent = NULL,Thin_latent = NULL){
   if((is.diagonal.matrix(SigmaE))){
     sds<-rep(sqrt(diag(SigmaE)),each = n)
-    l<-matrix(truncnorm:rtruncnorm(n = n * ntraits,a = as.vector(ay),b = as.vector(by),
+    l<-matrix(truncnorm::rtruncnorm(n = n * ntraits,a = as.vector(ay),b = as.vector(by),
                            mean = as.vector(rv),sd = sds),
                 nrow = n,ncol = ntraits,byrow = FALSE)
   }
