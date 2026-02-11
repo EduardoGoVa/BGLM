@@ -2,3 +2,4 @@
 
 export(MTME)
 export(UTME)
+useDynLib(BGM, .registration = TRUE)
