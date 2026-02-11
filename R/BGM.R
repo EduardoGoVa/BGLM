@@ -1,3 +1,6 @@
+#' @useDynLib BGM, .registration = TRUE
+NULL
+
 # Functions
 #-------------------------------------------------------------------------------
 
@@ -554,7 +557,7 @@ setResCov<-function (n,resCov,ntraits,Sy,R2,saveAt)
       message("S was set to ")
       print(resCov$priorS)
     }
-    resCov$SigmaE<-riwish(v = resCov$priorv,S = resCov$priorS)
+    resCov$SigmaE<-MCMCpack::riwish(v = resCov$priorv,S = resCov$priorS)
     resCov$SigmaEInv<-solve(resCov$SigmaE)
   }
 
@@ -600,7 +603,7 @@ setResCov<-function (n,resCov,ntraits,Sy,R2,saveAt)
       message("var was set to 100")
     }
 
-    resCov$SigmaE<-riwish(v = ntraits + 1,S = diag(resCov$priorS))
+    resCov$SigmaE<-MCMCpack::riwish(v = ntraits + 1,S = diag(resCov$priorS))
     sdU<-sqrt(diag(resCov$SigmaE))
     if (is.null(resCov$W)) {
       FA<-factanal(covmat = resCov$SigmaE,factors = resCov$nF,
@@ -694,7 +697,7 @@ setCov.UN<-function (Cov,ntraits,i,mo,saveAt)
     message("SB set to ")
     print(Cov$priorSB)
   }
-  Cov$SigmaB<-riwish(v = Cov$priorvB,S = Cov$priorSB)
+  Cov$SigmaB<-MCMCpack::riwish(v = Cov$priorvB,S = Cov$priorSB)
   Cov$SigmaBInv<-solve(Cov$SigmaB)
   Cov$post_SigmaB<-matrix(0,nrow = ntraits,ncol = ntraits)
   Cov$post_SigmaB2<-matrix(0,nrow = ntraits,ncol = ntraits)
@@ -759,7 +762,7 @@ setCov.FA<-function (Cov,ntraits,nD,i,mo,saveAt)
          ntraits)
   Cov$nF<-ncol(Cov$M)
   Cov$nD<-nD
-  Cov$SigmaB<-riwish(v = ntraits + 1,S = diag(Cov$priorSB))
+  Cov$SigmaB<-MCMCpack::riwish(v = ntraits + 1,S = diag(Cov$priorSB))
   sdU<-sqrt(diag(Cov$SigmaB))
   if (is.null(Cov$W)) {
     FA<-factanal(covmat = Cov$SigmaB,factors = Cov$nF,
@@ -823,7 +826,7 @@ setCov.REC<-function (Cov,ntraits,i,mo,saveAt)
     Cov$PSI[k]<-1/rgamma(n=1,Cov$priorvB[k]/2,Cov$priorSB[k]/2)
   }
 
-  Cov$SigmaB<-riwish(v = ntraits + 1,S = diag(Cov$priorSB))
+  Cov$SigmaB<-MCMCpack::riwish(v = ntraits + 1,S = diag(Cov$priorSB))
   Cov$SigmaBInv<-solve(Cov$SigmaB)
   Cov$post_SigmaB<-matrix(0,nrow = ntraits,ncol = ntraits)
   Cov$post_SigmaB2<-matrix(0,nrow = ntraits,ncol = ntraits)
@@ -1365,7 +1368,7 @@ setLT.RKHS_mtme<-function(LT,n,ntraits,i,y,Sy,nLT,R2,saveAt,response_type,NoWhic
       aux<-colMeans(log(y_Env+1),na.rm=T)
       Sy_Env<-outer(sqrt(aux),sqrt(aux))
       if(any(is.na(Sy_Env))){Sy_Env=diag(1,LT$nEnv)}
-      if(!is.positive.definite(Sy_Env)){
+      if(!matrixcalc::is.positive.definite(Sy_Env)){
         eigens = eigen(Sy_Env)$values
         MinEigen = min(eigens)
         alpha = -MinEigen + 1e-6
@@ -1441,7 +1444,7 @@ setLT.RKHS_mtme<-function(LT,n,ntraits,i,y,Sy,nLT,R2,saveAt,response_type,NoWhic
       aux<-colMeans(log(y_Env+1),na.rm=T)
       Sy_Env<-outer(sqrt(aux),sqrt(aux))
       if(any(is.na(Sy_Env))){Sy_Env=diag(1,LT$nEnv)}
-      if(!is.positive.definite(Sy_Env)){
+      if(!matrixcalc::is.positive.definite(Sy_Env)){
         eigens = eigen(Sy_Env)$values
         MinEigen = min(eigens)
         alpha = -MinEigen + 1e-6
@@ -1498,7 +1501,7 @@ setLT.RKHS_mtme<-function(LT,n,ntraits,i,y,Sy,nLT,R2,saveAt,response_type,NoWhic
 # Posterior distribution for latent variable in DLN-UT model
 fL<-function(n=NULL,a=NULL,b=NULL,rv=NULL,varE=NULL)
 {
-  return(rtruncnorm(n,a=a,b=b,mean = rv,sd = sqrt(varE)))
+  return(truncnorm:rtruncnorm(n,a=a,b=b,mean = rv,sd = sqrt(varE)))
 }
 
 # Posterior distribution for latent variable in DLN-MT model
@@ -1507,7 +1510,7 @@ lmulti<-function(n = NULL,ntraits = NULL,rv = NULL,SigmaE = NULL,SigmaEInv = NUL
                    Burn_latent = NULL,Thin_latent = NULL){
   if((is.diagonal.matrix(SigmaE))){
     sds<-rep(sqrt(diag(SigmaE)),each = n)
-    l<-matrix(rtruncnorm(n = n * ntraits,a = as.vector(ay),b = as.vector(by),
+    l<-matrix(truncnorm:rtruncnorm(n = n * ntraits,a = as.vector(ay),b = as.vector(by),
                            mean = as.vector(rv),sd = sds),
                 nrow = n,ncol = ntraits,byrow = FALSE)
   }
@@ -1523,14 +1526,14 @@ lmulti<-function(n = NULL,ntraits = NULL,rv = NULL,SigmaE = NULL,SigmaEInv = NUL
 # models
 fL_P<-function(y_r=NULL,n=NULL,rv=NULL)
 {
-  return(rpg(n,y_r,rv))
+  return(BayesLogit::rpg(n,y_r,rv))
 }
 
 # Posterior distribution for latent variable in Poisson and Poisson-lognormal MT
 # models
 wmulti<-function(y_r=NULL,n=NULL,ntraits=NULL,rv=NULL)
 {
-  w<-matrix(rpg(n * ntraits,as.vector(y_r),as.vector(rv)),
+  w<-matrix(BayesLogit::rpg(n * ntraits,as.vector(y_r),as.vector(rv)),
               nrow = n,ncol = ntraits,byrow = FALSE)
   return(w)
 }
@@ -1648,7 +1651,7 @@ fllp_P_multi<-function(rv=NULL,y=NULL,r=NULL,ntraits=NULL)
 }
 
 # Posterior Log-likelihood for Poisson-lognormal-MT model
-fllp_PLN_multi<-function(y=NULL,n=NULL,ntraits=NULL,logy_factorial=NULL,
+fllp_PLN_multi_R<-function(y=NULL,n=NULL,ntraits=NULL,logy_factorial=NULL,
                      rvPois=NULL,SigmaE=NULL,gh=NULL,Q=NULL,
                      nodes_mult=NULL,gh_weights_mult=NULL)
 {
@@ -1703,7 +1706,7 @@ UTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
   }
 
   if(verbose){
-    pb<-progress_bar$new(
+    pb<-progress::progress_bar$new(
       format = "  Progress [:bar] :percent in :elapsed",
       total = nIter,clear = FALSE,width = 60
     )
@@ -1765,7 +1768,7 @@ UTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
         if(response_type%in%c("Poisson","PLN")){
           aux<-colMeans(log(y1+1),na.rm=TRUE)
           Sy<-outer(sqrt(aux),sqrt(aux))
-          if(!is.positive.definite(Sy)){
+          if(!matrixcalc::is.positive.definite(Sy)){
             eigens = eigen(Sy)$values
             MinEigen = min(eigens)
             alpha = -MinEigen + 1e-6
@@ -1892,7 +1895,7 @@ UTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
     rv = rep(0,n) - log(r)
   }
   if(response_type == "PLN"){
-    gh<-gauss.quad(20,kind = "hermite")
+    gh<-statmod::gauss.quad(20,kind = "hermite")
     Q = length(gh$nodes)
     logy_factorial = lgamma(y[obs_idx]+1)
     U = rep(0,n)
@@ -2116,7 +2119,7 @@ UTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
           }
           else{nu = sqrt(varE * ETA[[j]]$lambda^2 / ETA[[j]]$Bv^2)}
           tmp = NULL
-          try(tmp<-rinvgauss(n = ETA[[j]]$p,mean = nu,shape = ETA[[j]]$lambda2))
+          try(tmp<-statmod::rinvgauss(n = ETA[[j]]$p,mean = nu,shape = ETA[[j]]$lambda2))
           if (!is.null(tmp) && !any(tmp < 0)) {
             if (!any(is.na(sqrt(tmp)))) {
               ETA[[j]]$tau2 = 1/tmp
@@ -2296,7 +2299,7 @@ UTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
             SE2 = crossprod(MEnv)
 
             if (ETA[[j]]$GxExT$Cov$type == "UN") {
-              ETA[[j]]$GxExT$Cov$SigmaEnv<-riwish(v = ETA[[j]]$GxExT$Cov$priorvE+ETA[[j]]$nLinesTraits,
+              ETA[[j]]$GxExT$Cov$SigmaEnv<-MCMCpack::riwish(v = ETA[[j]]$GxExT$Cov$priorvE+ETA[[j]]$nLinesTraits,
                                                     S = SE2 + ETA[[j]]$GxExT$Cov$priorSE)
             }
             if (ETA[[j]]$GxExT$Cov$type == "DIAG") {
@@ -2977,7 +2980,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
   }
 
   if(verbose){
-    pb<-progress_bar$new(
+    pb<-progress::progress_bar$new(
       format = "  Progress [:bar] :percent in :elapsed",
       total = nIter,clear = FALSE,width = 60
     )
@@ -3015,7 +3018,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
   if(response_type%in%c("Poisson","PLN")){
     aux<-colMeans(log(y+1),na.rm=TRUE)
     Sy<-outer(sqrt(aux),sqrt(aux))
-    if(!is.positive.definite(Sy)){
+    if(!matrixcalc::is.positive.definite(Sy)){
       eigens = eigen(Sy)$values
       MinEigen = min(eigens)
       alpha = -MinEigen + 1e-6
@@ -3121,7 +3124,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
   if(response_type == "DLN"){
     ay = log(yStar);  by = log(yStar+1)
     if (!(is.diagonal.matrix(resCov$SigmaE))){
-      U_qmc = sobol(n = n_QMCpoints,dim = ntraits,seed=123)
+      U_qmc = randtoolbox::sobol(n = n_QMCpoints,dim = ntraits,seed=123)
     }
     rv = matrix(0,nrow = n,ncol = ntraits)
   }
@@ -3139,7 +3142,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
     rv = matrix(0,nrow = n,ncol = ntraits) - log(r)
   }
   if(response_type == "PLN"){
-    gh<-gauss.quad(20,kind = "hermite")
+    gh<-statmod::gauss.quad(20,kind = "hermite")
     Q = length(gh$nodes)
     logy_factorial = lgamma(y[NoWhichNa,]+1)
     if(!(resCov$type == "DIAG")){
@@ -3147,7 +3150,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
 
       Q<-n_QMCpoints
       # Uniform QMC nodes in [0,1]^ntraits
-      sobol_nodes<-sobol(n = Q,dim = ntraits,seed = 123)
+      sobol_nodes<-randtoolbox::sobol(n = Q,dim = ntraits,seed = 123)
 
       # Transform to normal standard nodes using the inverse (N(0,1))
       nodes_mult<-qnorm(sobol_nodes)/sqrt(2)
@@ -3244,7 +3247,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
           S4<-crossprod(ETA[[j]]$Bv)
 
           if (ETA[[j]]$Cov$type == "UN") {
-            ETA[[j]]$Cov$SigmaB<-riwish(v = ETA[[j]]$Cov$priorvB + ETA[[j]]$p,
+            ETA[[j]]$Cov$SigmaB<-MCMCpack::riwish(v = ETA[[j]]$Cov$priorvB + ETA[[j]]$p,
                                           S = S4 + ETA[[j]]$Cov$priorSB)
           }
 
@@ -3350,7 +3353,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
           }
 
           if (ETA[[j]]$Cov$type == "UN") {
-            ETA[[j]]$Cov$SigmaB<-riwish(v = ETA[[j]]$Cov$priorvB+ETA[[j]]$nLines+ETA[[j]]$nLinesEnvs,
+            ETA[[j]]$Cov$SigmaB<-MCMCpack::riwish(v = ETA[[j]]$Cov$priorvB+ETA[[j]]$nLines+ETA[[j]]$nLinesEnvs,
                                           S = SE + SE1 + ETA[[j]]$Cov$priorSB)
           }
           if (ETA[[j]]$Cov$type == "DIAG") {
@@ -3413,7 +3416,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
             SE2 = crossprod(MEnv)
 
             if (ETA[[j]]$GxExT$Cov$type == "UN") {
-              ETA[[j]]$GxExT$Cov$SigmaEnv<-riwish(v = ETA[[j]]$GxExT$Cov$priorvE+ETA[[j]]$nLinesTraits,
+              ETA[[j]]$GxExT$Cov$SigmaEnv<-MCMCpack::riwish(v = ETA[[j]]$GxExT$Cov$priorvE+ETA[[j]]$nLinesTraits,
                                                     S = SE2 + ETA[[j]]$GxExT$Cov$priorSE)
             }
             if (ETA[[j]]$GxExT$Cov$type == "DIAG") {
@@ -3509,7 +3512,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
       CP<-crossprod(e)
       # Sampling from full conditional of SigmaE
       if (resCov$type == "UN") {
-        resCov$SigmaE<-riwish(v = resCov$priorv + n,S = CP + resCov$priorS)
+        resCov$SigmaE<-MCMCpack::riwish(v = resCov$priorv + n,S = CP + resCov$priorS)
       }
       if (resCov$type == "DIAG") {
         VV = resCov$priorv+n
@@ -3570,7 +3573,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
         rp = exp(rvPois[!NoWhichNa,]+U[!NoWhichNa,])
         yStar[!NoWhichNa,] = matrix(rpois(n=nNa*ntraits,lambda=as.vector(rp)),nrow=nNa,ncol=ntraits)
       }
-      loglik = fllp_PLN_multi(y=y[NoWhichNa,],n=nObs,ntraits=ntraits,logy_factorial=logy_factorial,
+      loglik = fllp_PLN_multi_R(y=y[NoWhichNa,],n=nObs,ntraits=ntraits,logy_factorial=logy_factorial,
                               rvPois=rvPois[NoWhichNa,],SigmaE=resCov$SigmaE,gh=gh,Q=Q,
                               nodes_mult=nodes_mult,gh_weights_mult=gh_weights_mult)
     }
@@ -3880,7 +3883,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
   }
 
   if(response_type == "PLN"){
-    fit$logLikAtPostMean = fllp_PLN_multi(y=y[NoWhichNa,],n=nObs,ntraits=ntraits,logy_factorial=logy_factorial,
+    fit$logLikAtPostMean = fllp_PLN_multi_R(y=y[NoWhichNa,],n=nObs,ntraits=ntraits,logy_factorial=logy_factorial,
                                           rvPois=rv_mean[NoWhichNa,],SigmaE=resCov$post_SigmaE,gh=gh,Q=Q,
                                           nodes_mult=nodes_mult,gh_weights_mult=gh_weights_mult)
     fit$pD = -2 * (post_logLik - fit$logLikAtPostMean)
