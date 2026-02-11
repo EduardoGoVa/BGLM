@@ -1,16 +1,3 @@
-library(nleqslv)
-library(truncnorm)
-library(TruncatedNormal)
-library(MASS)
-library(MCMCpack)
-library(matrixcalc)
-library(BayesLogit)
-library(progress)
-library(statmod)
-library(mvQuad)
-library(randtoolbox)
-library(listr)
-
 # Functions
 #-------------------------------------------------------------------------------
 
