@@ -1215,14 +1215,14 @@ setCov.MTME<-function(LT,n,nEnvs,i,Sy,nLT,R2,saveAt,response_type,NoWhichNa)
   rm(tmp)
 
   if(LT$Cov$type%in%c("DIAG","UN")){
-    LT$Cov<-list_rename(LT$Cov,priorvE = "priorvB",priorSE = "priorSB",SigmaEnv = "SigmaB",
+    LT$Cov<-listr::list_rename(LT$Cov,priorvE = "priorvB",priorSE = "priorSB",SigmaEnv = "SigmaB",
                         SigmaEnvInv = "SigmaBInv",post_SigmaEnv="post_SigmaB",
                         post_SigmaEnv2="post_SigmaB2",fName_SigmaEnv="fName_SigmaB",
                         f_SigmaEnv="f_SigmaB")
   }
 
   if(LT$Cov$type%in%c("FA","REC")){
-    LT$Cov<-list_rename(LT$Cov,priorvE = "priorvB",priorSE = "priorSB",SigmaEnv = "SigmaB",
+    LT$Cov<-listr::list_rename(LT$Cov,priorvE = "priorvB",priorSE = "priorSB",SigmaEnv = "SigmaB",
                         SigmaEnvInv = "SigmaBInv",post_SigmaEnv="post_SigmaB",
                         post_SigmaEnv2="post_SigmaB2")
   }
