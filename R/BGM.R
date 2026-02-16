@@ -1354,7 +1354,7 @@ setLT.RKHS_mtme<-function(LT,n,ntraits,i,y,Sy,nLT,R2,saveAt,response_type,NoWhic
                        saveAt=saveAt,response_type=response_type,NoWhichNa=NoWhichNa)
 
     # For environment sample variances
-    y_Env = matrix(vec(t(y)),ncol=LT$nEnv,byrow=F)
+    y_Env = matrix(matrixcalc::vec(t(y)),ncol=LT$nEnv,byrow=F)
 
     if(response_type == "gaussian"){
       Sy_Env<-var(y_Env,na.rm = T)
@@ -1430,7 +1430,7 @@ setLT.RKHS_mtme<-function(LT,n,ntraits,i,y,Sy,nLT,R2,saveAt,response_type,NoWhic
                      response_type=response_type,NoWhichNa=NoWhichNa)
 
     # For environment sample variances
-    y_Env = matrix(vec(t(y)),ncol=LT$nEnv,byrow=F)
+    y_Env = matrix(matrixcalc::vec(t(y)),ncol=LT$nEnv,byrow=F)
 
     if(response_type == "gaussian"){
       Sy_Env<-var(y_Env,na.rm = T)
@@ -2295,7 +2295,7 @@ UTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
             ETA[[j]]$GxExT$Bv = B2[[1]]
             rv = B2[[2]]
 
-            MEnv = matrix(vec(t(ETA[[j]]$GxExT$Bv)),ncol = ETA[[j]]$nEnv,byrow = F)
+            MEnv = matrix(matrixcalc::vec(t(ETA[[j]]$GxExT$Bv)),ncol = ETA[[j]]$nEnv,byrow = F)
             SE2 = crossprod(MEnv)
 
             if (ETA[[j]]$GxExT$Cov$type == "UN") {
@@ -3412,7 +3412,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
             ETA[[j]]$GxExT$Bv = B2[[1]]
             rv = B2[[2]]
 
-            MEnv = matrix(vec(t(ETA[[j]]$GxExT$Bv)),ncol = ETA[[j]]$nEnv,byrow = F)
+            MEnv = matrix(matrixcalc::vec(t(ETA[[j]]$GxExT$Bv)),ncol = ETA[[j]]$nEnv,byrow = F)
             SE2 = crossprod(MEnv)
 
             if (ETA[[j]]$GxExT$Cov$type == "UN") {
