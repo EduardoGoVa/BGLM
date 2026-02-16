@@ -1553,7 +1553,7 @@ fB0_DLN_multi<-function(priorSigma0Inv = NULL,SigmaEInv,rv = NULL,n = NULL) {
   sum_term<-SigmaEInv %*% colSums(rv)
   Mu0<-Sigma0 %*% (sum_term)
 
-  return(mvrnorm(n=1,mu=Mu0,Sigma=Sigma0))
+  return(MASS::mvrnorm(n=1,mu=Mu0,Sigma=Sigma0))
 }
 
 # Posterior distribution for intercept in Poisson and Poisson-lognormal UT models
@@ -1571,7 +1571,7 @@ fB0_P_multi<-function(l = NULL,Syr = NULL,priorSigma0Inv = NULL,rv = NULL){
   sum_term<-Syr/2 - colSums(l*rv)
   Mu0<-Sigma0 %*% (sum_term)
 
-  return(mvrnorm(n=1,mu=Mu0,Sigma=Sigma0))
+  return(MASS::mvrnorm(n=1,mu=Mu0,Sigma=Sigma0))
 }
 
 # Posterior distribution for intercept in linear-UT model
@@ -1590,7 +1590,7 @@ fB0_G_multi<-function(priorSigma0Inv = NULL,
   sum_term<-SigmaEInv %*% colSums(rv)
   Mu0<-Sigma0 %*% (sum_term)
 
-  return(mvrnorm(n=1,mu=Mu0,Sigma=Sigma0))
+  return(MASS::mvrnorm(n=1,mu=Mu0,Sigma=Sigma0))
 }
 
 # Posterior Log-likelihood for linear-UT model
@@ -3545,10 +3545,10 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
     if(response_type == "DLN"){
       rv = l - rv
       if(type_prediction == "mean"){
-        y_tr = floor(exp(rv+mvrnorm(n=n,mu=rep(0,ntraits),Sigma=resCov$SigmaE)))
+        y_tr = floor(exp(rv+MASS::mvrnorm(n=n,mu=rep(0,ntraits),Sigma=resCov$SigmaE)))
       }
       if(nNa>0){
-        lp = rv[!NoWhichNa,]+mvrnorm(n=nNa,mu=rep(0,ntraits),Sigma=resCov$SigmaE)
+        lp = rv[!NoWhichNa,]+MASS::mvrnorm(n=nNa,mu=rep(0,ntraits),Sigma=resCov$SigmaE)
         yStar[!NoWhichNa,] = floor(exp(lp))
         ay[!NoWhichNa,]=log(yStar[!NoWhichNa,]); by[!NoWhichNa,]=log(yStar[!NoWhichNa,]+1)
       }
@@ -3581,7 +3581,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
     if(response_type == "gaussian"){
       y_tr = yStar - rv
       if(nNa>0){
-        yStar[!NoWhichNa,] = y_tr[!NoWhichNa,]+mvrnorm(n=nNa,mu=rep(0,ntraits),Sigma=resCov$SigmaE)
+        yStar[!NoWhichNa,] = y_tr[!NoWhichNa,]+MASS::mvrnorm(n=nNa,mu=rep(0,ntraits),Sigma=resCov$SigmaE)
         rv[!NoWhichNa,] = yStar[!NoWhichNa,] - y_tr[!NoWhichNa,]
       }
       loglik = cte + partial_fllp_G(rv = rv[NoWhichNa,],SigmaE = resCov$SigmaE)
