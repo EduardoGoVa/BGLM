@@ -1508,7 +1508,7 @@ fL<-function(n=NULL,a=NULL,b=NULL,rv=NULL,varE=NULL)
 lmulti<-function(n = NULL,ntraits = NULL,rv = NULL,SigmaE = NULL,SigmaEInv = NULL,
                    ay = NULL,by = NULL,type = NULL,Iters_latent = NULL,
                    Burn_latent = NULL,Thin_latent = NULL){
-  if((is.diagonal.matrix(SigmaE))){
+  if((matrixcalc::is.diagonal.matrix(SigmaE))){
     sds<-rep(sqrt(diag(SigmaE)),each = n)
     l<-matrix(truncnorm::rtruncnorm(n = n * ntraits,a = as.vector(ay),b = as.vector(by),
                            mean = as.vector(rv),sd = sds),
@@ -1621,7 +1621,7 @@ fllp_DLN<-function(rv=NULL,varE=NULL,y=NULL)
 fllp_DLN_multi<-function(y = NULL,n = NULL,ntraits = NULL,a = NULL,b = NULL,
                      rv = NULL,SigmaE = NULL,U_qmc = NULL)
 {
-  if ((is.diagonal.matrix(SigmaE))) {
+  if ((matrixcalc::is.diagonal.matrix(SigmaE))) {
     sds<-rep(sqrt(diag(SigmaE)),each = n)
     loglik_total<-sum(log(plnorm(as.vector(y)+1,as.vector(rv),sds)-plnorm(as.vector(y),as.vector(rv),sds)))
   }else {
@@ -1655,7 +1655,7 @@ fllp_PLN_multi_R<-function(y=NULL,n=NULL,ntraits=NULL,logy_factorial=NULL,
                      rvPois=NULL,SigmaE=NULL,gh=NULL,Q=NULL,
                      nodes_mult=NULL,gh_weights_mult=NULL)
 {
-  if (is.diagonal.matrix(SigmaE)) {
+  if (matrixcalc::is.diagonal.matrix(SigmaE)) {
     loglik_total = 0.0
     varE<-diag(SigmaE)
     for (i in 1:ntraits) {
@@ -3123,7 +3123,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
 
   if(response_type == "DLN"){
     ay = log(yStar);  by = log(yStar+1)
-    if (!(is.diagonal.matrix(resCov$SigmaE))){
+    if (!(matrixcalc::is.diagonal.matrix(resCov$SigmaE))){
       U_qmc = randtoolbox::sobol(n = n_QMCpoints,dim = ntraits,seed=123)
     }
     rv = matrix(0,nrow = n,ncol = ntraits)
