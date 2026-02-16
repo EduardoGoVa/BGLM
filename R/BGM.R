@@ -2540,7 +2540,7 @@ UTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
               ETA[[j]]$Cov$post_SigmaB2 = (ETA[[j]]$Cov$SigmaB^2 + (nk - 1) * ETA[[j]]$Cov$post_SigmaB2) / nk
 
               if (ETA[[j]]$Cov$type %in% c("UN","DIAG")) {
-                tmp<-vech(ETA[[j]]$Cov$SigmaB)
+                tmp<-matrixcalc::vech(ETA[[j]]$Cov$SigmaB)
                 write(tmp,ncolumns = length(tmp),file = ETA[[j]]$Cov$f_SigmaB,
                       append = TRUE,sep = " ")
                 rm(tmp)
@@ -2572,7 +2572,7 @@ UTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
                 ETA[[j]]$GxExT$Cov$post_SigmaEnv2 = (ETA[[j]]$GxExT$Cov$SigmaEnv^2 + (nk - 1) * ETA[[j]]$GxExT$Cov$post_SigmaEnv2) / nk
 
                 if (ETA[[j]]$GxExT$Cov$type %in% c("UN","DIAG")) {
-                  tmp<-vech(ETA[[j]]$GxExT$Cov$SigmaEnv)
+                  tmp<-matrixcalc::vech(ETA[[j]]$GxExT$Cov$SigmaEnv)
                   write(tmp,ncolumns = length(tmp),file = ETA[[j]]$GxExT$Cov$f_SigmaEnv,
                         append = TRUE,sep = " ")
                   rm(tmp)
@@ -3638,7 +3638,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
               ETA[[j]]$Cov$post_SigmaB2 = (ETA[[j]]$Cov$SigmaB^2 + (nk - 1) * ETA[[j]]$Cov$post_SigmaB2) / nk
 
               if (ETA[[j]]$Cov$type %in% c("UN","DIAG")) {
-                tmp<-vech(ETA[[j]]$Cov$SigmaB)
+                tmp<-matrixcalc::vech(ETA[[j]]$Cov$SigmaB)
                 write(tmp,ncolumns = length(tmp),file = ETA[[j]]$Cov$f_SigmaB,
                       append = TRUE,sep = " ")
                 rm(tmp)
@@ -3671,7 +3671,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
               ETA[[j]]$Cov$post_SigmaB2 = (ETA[[j]]$Cov$SigmaB^2 + (nk - 1) * ETA[[j]]$Cov$post_SigmaB2) / nk
 
               if (ETA[[j]]$Cov$type %in% c("UN","DIAG")) {
-                tmp<-vech(ETA[[j]]$Cov$SigmaB)
+                tmp<-matrixcalc::vech(ETA[[j]]$Cov$SigmaB)
                 write(tmp,ncolumns = length(tmp),file = ETA[[j]]$Cov$f_SigmaB,
                       append = TRUE,sep = " ")
                 rm(tmp)
@@ -3704,7 +3704,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
                 ETA[[j]]$GxExT$Cov$post_SigmaEnv2 = (ETA[[j]]$GxExT$Cov$SigmaEnv^2 + (nk - 1) * ETA[[j]]$GxExT$Cov$post_SigmaEnv2) / nk
 
                 if (ETA[[j]]$GxExT$Cov$type %in% c("UN","DIAG")) {
-                  tmp<-vech(ETA[[j]]$GxExT$Cov$SigmaEnv)
+                  tmp<-matrixcalc::vech(ETA[[j]]$GxExT$Cov$SigmaEnv)
                   write(tmp,ncolumns = length(tmp),file = ETA[[j]]$GxExT$Cov$f_SigmaEnv,
                         append = TRUE,sep = " ")
                   rm(tmp)
@@ -3737,7 +3737,7 @@ MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
           resCov$post_SigmaE = (resCov$SigmaE + (nk - 1) * resCov$post_SigmaE) / nk
           resCov$post_SigmaE2 = (resCov$SigmaE^2 + (nk - 1) * resCov$post_SigmaE2) / nk
 
-          tmp<-vech(resCov$SigmaE)
+          tmp<-matrixcalc::vech(resCov$SigmaE)
           write(tmp,ncolumns = length(tmp),file = resCov$f_SigmaE,
                 append = TRUE,sep = " ")
 
