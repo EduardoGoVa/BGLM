@@ -1,0 +1,28 @@
+---
+title: "Bayesian Generalized Models"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Bayesian Generalized Models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Overview
+
+This package fits Bayesian generalized models using MCMC.
+
+# Methodological details
+
+Full details are available in the paper:
+
+[Full methodology](DLN-UTME_Model.pdf)
+
+# Example
+
+```r
+library(BGM)
+
+y <- floor(exp(rlnorm(100)))
+
+fit <- UTME(y=y)
+```

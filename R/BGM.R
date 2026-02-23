@@ -1676,11 +1676,60 @@ fllp_PLN_multi_R<-function(y=NULL,n=NULL,ntraits=NULL,logy_factorial=NULL,
 
 #-------------------------------------------------------------------------------
 
-# Uni-Trait Multi-Environment Regression
+#' Fit a Bayesian Uni-Trait Multi-Environment Regression Model
+#'
+#' Fits a Bayesian Uni-trait and Multi-environment model using MCMC sampling.
+#' Supports Gaussian, Poisson, DLN and PLN responses.
+#'
+#' @param ETA List used to specify the linear predictor.
+#' By default it is set to NULL, in which case only the intercept is included.
+#' @param y Response vector. Can contain NA values.
+#' @param response_type Type of response ("DLN","gaussian","Poisson","PLN").
+#' For DLN, Poisson or PLN responses, the argument `y` must contain integer values,
+#' while for gaussian responses any type of numeric value can be accepted.
+#' @param nIter Number of MCMC iterations.
+#' @param nBurnin Burn-in iterations.
+#' @param nThin Thinning interval.
+#' @param priorv Prior degrees of freedom for the error variance.
+#' @param priorS Prior scale for the error variance.
+#' @param R2 Proportion of variance explained a priori for the error term.
+#' @param priorvarbeta0 Choose the variance, σ_0^2, to obtain a flat prior
+#' for intercept,β_0∼N(0, σ_0^2).By default (internally) is 1e10.
+#' @param rcontrol Specify the k-value used to control the difference between the
+#' Conditional Mean and Conditional Variance of the Negative Binomial model.
+#' Higher values of k indicate a smaller difference between the mean and variance,
+#' approximating the equidispersion of a Poisson model
+#' @param type_prediction Used to specify if you want to predict with the posterior
+#' mean or median in DLN model; default is mean.
+#' @param intercept A list of length two. The first element is a logical indicating
+#' whether the intercept should be included. The second element indicates the
+#' position of the intercept in the linear predictor.
+#' @param verbose Used to show (TRUE) or not (FALSE) the progress of iterations
+#' in the Gibbs Sampler; default is FALSE
+#' @param saveAt Used to indicate UTME where to store the samples and to provide
+#' a pre-fix to be appended to the names of the file where samples are stored.
+#' By default samples are saved in the current working directory and no pre-fix
+#' is added to the file names
+#' @return A list containing posterior samples and summaries.
+#'
 #' @export
-UTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
-                 nThin=1,R2=0.5,priorv=5,priorS=NULL,priorvarbeta0=NULL,rcontrol=1.15,
-                 type_prediction="mean",saveAt="",intercept=list(TRUE,0),verbose=F){
+UTME<-function(
+    ETA=NULL,
+    y=NULL,
+    response_type="DLN",
+    nIter=1e3,
+    nBurnin=1e2,
+    nThin=1,
+    R2=0.5,
+    priorv=5,
+    priorS=NULL,
+    priorvarbeta0=NULL,
+    rcontrol=1.15,
+    type_prediction="mean",
+    intercept=list(TRUE,0),
+    verbose=F,
+    saveAt=""
+    ){
 
   # nIter and nBurnin validation
   if (!is.null(nIter) && !is.null(nBurnin)) {
@@ -2948,13 +2997,71 @@ UTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
 
 }
 
-# Multi-Trait Multi-Environment Regression
+#' Fit a Bayesian Multi-Trait Multi-Environment Regression Model
+#'
+#' Fits a Bayesian Multi-trait and Multi-environment model using MCMC sampling.
+#' Supports Gaussian, Poisson, DLN and PLN responses.
+#'
+#' @param ETA List used to specify the linear predictor.
+#' By default it is set to NULL, in which case only the intercept is included.
+#' @param y Response vector. Can contain NA values.
+#' @param response_type Type of response ("DLN","gaussian","Poisson","PLN").
+#' For DLN, Poisson or PLN responses, the argument `y` must contain integer values,
+#' while for gaussian responses any type of numeric value can be accepted.
+#' @param nIter Number of MCMC iterations.
+#' @param nBurnin Burn-in iterations.
+#' @param nThin Thinning interval.
+#' @param R2 Proportion of variance explained a priori for the error term.
+#' @param priorv Prior degrees of freedom for the error co-variance matrix.
+#' @param priorS Prior scale for the error co-variance matrix.
+#' @param type Co-variance structure (Unstructured, Diagonal, Factor Analysis
+#' or Recursive)
+#' @param priorSigma0 Choose the variance, Iσ_0^2, to obtain a flat prior
+#' for the vector of intercepts,β_0∼MN(0, Iσ_0^2).By default (internally) is 1e10.
+#' @param rcontrol Specify the k-value used to control the difference between the
+#' Conditional Mean and Conditional Variance of the Negative Binomial model.
+#' Higher values of k indicate a smaller difference between the mean and variance,
+#' approximating the equidispersion of a Poisson model
+#' @param type_prediction Used to specify if you want to predict with the posterior
+#' mean or median in DLN model; default is mean.
+#' @param Iters_latent Number of MCMC iterations to obtain Multivariate Truncated
+#' normal samples.
+#' @param Burn_latent Burn-in iterations for the Multivariate Truncated normal
+#' samples.
+#' @param Thin_latent Thinning interval for the Multivariate Truncated normal
+#' samples.
+#' @param Thin_latent Thinning interval for the Multivariate Truncated normal
+#' samples.
+#' @param n_QMCpoints Number of Sobol points for the Quasi-Monte Carlo method
+#' used for the aproximation of the likelihood of the Multivariate DLN model.
+#' @param verbose Used to show (TRUE) or not (FALSE) the progress of iterations
+#' in the Gibbs Sampler; default is FALSE
+#' @param saveAt Used to indicate UTME where to store the samples and to provide
+#' a pre-fix to be appended to the names of the file where samples are stored.
+#' By default samples are saved in the current working directory and no pre-fix
+#' is added to the file names
+#' @return A list containing posterior samples and summaries.
+#'
 #' @export
-MTME<-function(ETA=NULL,y=NULL,response_type="DLN",nIter=1e3,nBurnin=1e2,
-                 nThin=1,R2=0.5,resCov=list(priorv=NULL,priorS=NULL,type="UN"),
-                 priorSigma0=NULL,rcontrol=1.15,type_prediction="mean",saveAt="",
-                 Iters_latent=1,Burn_latent=0,Thin_latent=1,n_QMCpoints=10,intercept_mt=T,
-                 verbose=F){
+MTME<-function(
+    ETA=NULL,
+    y=NULL,
+    response_type="DLN",
+    nIter=1e3,
+    nBurnin=1e2,
+    nThin=1,
+    R2=0.5,
+    resCov=list(priorv=NULL,priorS=NULL,type="UN"),
+    priorSigma0=NULL,
+    rcontrol=1.15,
+    type_prediction="mean",
+    Iters_latent=1,
+    Burn_latent=0,
+    Thin_latent=1,
+    n_QMCpoints=10,
+    intercept_mt=T,
+    verbose=F,
+    saveAt=""){
 
   # nIter and nBurnin validation
   if (!is.null(nIter) && !is.null(nBurnin)) {

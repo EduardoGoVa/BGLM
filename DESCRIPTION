@@ -1,11 +1,18 @@
 Package: BGM
 Title: Bayesian Generalized Models
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    c(
+      person(given = "Eduardo", family = "González Vázquez",
+             email = "eduardo.gova1022@gmail.com", role = c("aut","cre")),
+      person(given = "Abelardo", family = "Montesinos López",
+             email = "abelardo.montesinos@academicos.udg.mx", role = "aut"),
+      person(given = "Osval Antonio", family = "Montesinos López",
+             email = "oamontes1@ucol.com", role = "aut")
+    )
+Description: Bayesian Generalized Models for Multi-Modal, Multi-Trait and
+      Multi-Environment regression.
+License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
@@ -22,3 +29,7 @@ Imports:
     mvQuad,
     randtoolbox,
     listr
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
