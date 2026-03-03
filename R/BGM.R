@@ -1800,12 +1800,12 @@ UTME<-function(
                               sep = "")
       }
       # Model validation
-      if (!(ETA[[i]]$model %in% c("FIXED","BRR","BayesA","BL","RKHS","RKHS_mtme"))) {
+      if (!(ETA[[i]]$model %in% c("FIXED","BRR","BayesA","BL","RKHS","RKHS_utme"))) {
         stop("Error in ETA[[",i,"]]"," model ",ETA[[i]]$model,
              " not implemented (note: evaluation is case sensitive)")
       }
 
-      if(ETA[[i]]$model == "RKHS_mtme"){
+      if(ETA[[i]]$model == "RKHS_utme"){
         ETA[[i]]$Cov$type = "UN"
         ntraits = 1; y1 = as.matrix(y)
         if(response_type == "gaussian"){
@@ -1831,7 +1831,7 @@ UTME<-function(
         stop("Only scalar and blocks updates are allowed (note: evaluation is case sensitive)")
       }
 
-      if(!ETA[[i]]$model%in%c("RKHS","RKHS_mtme")){
+      if(!ETA[[i]]$model%in%c("RKHS","RKHS_utme")){
         if(nNa != 0){
           ETA[[i]]$X_test = as.matrix(ETA[[i]]$X[whichNa,])
           if(!intercept[[1]] && i==intercept[[2]]){
@@ -1853,7 +1853,7 @@ UTME<-function(
                         burnIn = nBurnin,nLT_total,response_type,saveAt = saveAt,intercept = intercept,i = i),
                         RKHS = setLT.RKHS(LT = ETA[[i]],whichNa = obs_idx,
                         n = n,y = y,R2 = R2,nLT_total,response_type,saveAt = saveAt,i = i),
-                        RKHS_mtme=setLT.RKHS_mtme(LT=ETA[[i]],n=n,ntraits=ntraits,i=i,y=y1,Sy=Sy,
+                        RKHS_utme=setLT.RKHS_mtme(LT=ETA[[i]],n=n,ntraits=ntraits,i=i,y=y1,Sy=Sy,
                         nLT=nLT_total,R2=R2,saveAt=saveAt,response_type=response_type,NoWhichNa=obs_idx))
     }
   }
@@ -2243,7 +2243,7 @@ UTME<-function(
           rv = res[[2]]
         }
 
-        if (ETA[[j]]$model=="RKHS_mtme") {
+        if (ETA[[j]]$model=="RKHS_utme") {
           if(!is.null(ETA[[j]]$GxT)){
 
             # Sampling from posterior of Traits parameters
@@ -2579,7 +2579,7 @@ UTME<-function(
               write(ETA[[j]]$varU,file = ETA[[j]]$fileOut,append = TRUE)
             }
 
-            if (ETA[[j]]$model=="RKHS_mtme") {
+            if (ETA[[j]]$model=="RKHS_utme") {
               #Mean of Beta's
               ETA[[j]]$post_Bv = (ETA[[j]]$Bv + (nk - 1) * ETA[[j]]$post_Bv) / nk
               ETA[[j]]$post_Bv2 = (ETA[[j]]$Bv^2 + (nk - 1) * ETA[[j]]$post_Bv2) / nk
@@ -2886,7 +2886,7 @@ UTME<-function(
                                            "V","V2","v2","tV","tVV","nblocks"))
         ETA[[i]] = ETA[[i]][-tmp]
       }
-      if (ETA[[i]]$model=="RKHS_mtme") {
+      if (ETA[[i]]$model=="RKHS_utme") {
         if(!is.null(ETA[[i]]$GxT)){
           ETA[[i]]$u = ETA[[i]]$X%*%ETA[[i]]$post_Bv
           ETA[[i]]$uStar = ETA[[i]]$post_Bv
@@ -2932,7 +2932,7 @@ UTME<-function(
           }
         }
       }
-      if (ETA[[i]]$model =="RKHS_mtme") {
+      if (ETA[[i]]$model =="RKHS_utme") {
         ETA[[i]]$Cov$SigmaB = ETA[[i]]$Cov$post_SigmaB
         ETA[[i]]$Cov$SD.SigmaB = sqrt(ETA[[i]]$Cov$post_SigmaB2 - (ETA[[i]]$Cov$post_SigmaB^2))
 
