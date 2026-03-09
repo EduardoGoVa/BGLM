@@ -1694,16 +1694,18 @@ fllp_PLN_multi_R<-function(y=NULL,n=NULL,ntraits=NULL,logy_factorial=NULL,
 #' @param priorS Prior scale for the error variance.
 #' @param R2 Proportion of variance explained a priori for the error term.
 #' @param priorvarbeta0 Choose the variance, σ_0^2, to obtain a flat prior
-#' for intercept,β_0∼N(0, σ_0^2).By default (internally) is 1e10.
+#' for intercept,β_0∼N(0, σ_0^2). By default (internally) is 1e10.
 #' @param rcontrol Specify the k-value used to control the difference between the
 #' Conditional Mean and Conditional Variance of the Negative Binomial model.
 #' Higher values of k indicate a smaller difference between the mean and variance,
-#' approximating the equidispersion of a Poisson model
+#' approximating the equidispersion of a Poisson model.
 #' @param type_prediction Used to specify if you want to predict with the posterior
 #' mean or median in DLN model; default is mean.
-#' @param intercept A list of length two. The first element is a logical indicating
-#' whether the intercept should be included. The second element indicates the
-#' position of the intercept in the linear predictor.
+#' @param intercept A list of length two. The first element is used to specify if
+#' you want to include (TRUE) or not (FALSE) the intercept as an isolated term in
+#' linear predictor; in case you specify FALSE, the second argument assigns the
+#' position, according to the covariates order, where you want to include it.
+#' The default values are list(TRUE,0).
 #' @param verbose Used to show (TRUE) or not (FALSE) the progress of iterations
 #' in the Gibbs Sampler; default is FALSE
 #' @param saveAt Used to indicate UTME where to store the samples and to provide
@@ -3013,11 +3015,11 @@ UTME<-function(
 #' @param nThin Thinning interval.
 #' @param R2 Proportion of variance explained a priori for the error term.
 #' @param priorv Prior degrees of freedom for the error co-variance matrix.
-#' @param priorS Prior scale for the error co-variance matrix.
+#' @param priorS Prior scale matrix for the error co-variance matrix.
 #' @param type Co-variance structure (Unstructured, Diagonal, Factor Analysis
 #' or Recursive)
-#' @param priorSigma0 Choose the variance, Iσ_0^2, to obtain a flat prior
-#' for the vector of intercepts,β_0∼MN(0, Iσ_0^2).By default (internally) is 1e10.
+#' @param priorSigma0 Choose the variance, σ_0^2, to obtain a flat prior
+#' for the vector of intercepts, β_0∼N(0, Iσ_0^2).By default (internally) is 1e10.
 #' @param rcontrol Specify the k-value used to control the difference between the
 #' Conditional Mean and Conditional Variance of the Negative Binomial model.
 #' Higher values of k indicate a smaller difference between the mean and variance,
@@ -3025,15 +3027,15 @@ UTME<-function(
 #' @param type_prediction Used to specify if you want to predict with the posterior
 #' mean or median in DLN model; default is mean.
 #' @param Iters_latent Number of MCMC iterations to obtain Multivariate Truncated
-#' normal samples.
-#' @param Burn_latent Burn-in iterations for the Multivariate Truncated normal
+#' Normal samples.
+#' @param Burn_latent Burn-in iterations for the Multivariate Truncated Normal
 #' samples.
-#' @param Thin_latent Thinning interval for the Multivariate Truncated normal
-#' samples.
-#' @param Thin_latent Thinning interval for the Multivariate Truncated normal
+#' @param Thin_latent Thinning interval for the Multivariate Truncated Normal
 #' samples.
 #' @param n_QMCpoints Number of Sobol points for the Quasi-Monte Carlo method
-#' used for the aproximation of the likelihood of the Multivariate DLN model.
+#' used for the approximation of the log-likelihood of the Multivariate DLN model.
+#' @param intercept_mt Used to include (TRUE) or not (FALSE) the intercept in
+#' the linear predictor; default is TRUE.
 #' @param verbose Used to show (TRUE) or not (FALSE) the progress of iterations
 #' in the Gibbs Sampler; default is FALSE
 #' @param saveAt Used to indicate UTME where to store the samples and to provide
