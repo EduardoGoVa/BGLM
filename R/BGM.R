@@ -1923,8 +1923,8 @@ UTME<-function(
   # Algorithm
   #-----------------------------------------------------------------------------
   time<-proc.time()[3]
-  dyn.load("C:/Users/EDUARDO/Documents/BGM_dev/Functions_singletrait.dll")
-  dyn.load("C:/Users/EDUARDO/Documents/BGM_dev/Functions_multitrait.dll")
+  dyn.load("src/Functions_singletrait.dll")
+  dyn.load("src/Functions_multitrait.dll")
   yStar = y
   if (nNa > 0) {
     yStar[whichNa] = 0
@@ -2841,8 +2841,8 @@ UTME<-function(
   SD.logLik = sqrt(post_logLik2 - post_logLik^2)
   fit$SD.postlogLik = SD.logLik
 
-  dyn.unload("C:/Users/EDUARDO/Documents/BGM_dev/Functions_singletrait.dll")
-  dyn.unload("C:/Users/EDUARDO/Documents/BGM_dev/Functions_multitrait.dll")
+  dyn.unload("src/Functions_singletrait.dll")
+  dyn.unload("src/Functions_multitrait.dll")
   if (nLT > 0) {
     for (i in 1:nLT) {
       if (ETA[[i]]$model %in% c("FIXED","BRR","BayesA","BL")) {
@@ -3295,7 +3295,7 @@ MTME<-function(
                     gaussian = function(...) fB0_G_multi(priorSigma0Inv=priorSigma0Inv,
                                                          SigmaEInv=resCov$SigmaEInv,rv=rv,n=n)
   )
-  dyn.load("C:/Users/EDUARDO/Documents/BGM_dev/Functions_multitrait.dll")
+  dyn.load("src/Functions_multitrait.dll")
 
   # GIBBS SAMPLER
   #*****************************************************************************
@@ -4035,7 +4035,7 @@ MTME<-function(
       rownames(fit$SD.y_test) = rowNames[!NoWhichNa]; colnames(fit$SD.y_test) = colNames
     }
   }
-  dyn.unload("C:/Users/EDUARDO/Documents/BGM_dev/Functions_multitrait.dll")
+  dyn.unload("src/Functions_multitrait.dll")
 
   # Standard deviations for intercept and logLik
   if(intercept_mt){
