@@ -258,46 +258,33 @@ SEXP fBj_DLN_G_mtme(SEXP Bv, SEXP SigmaBInv, SEXP SigmaEInv,
   char transN = 'N', transT = 'T', uploL = 'L';
   double one = 1.0, zero = 0.0;
 
-  //------------------------------------------------------------------
-  // Detectar si SigmaBInv y SigmaEInv son diagonales
-  //------------------------------------------------------------------
-
-  bool diagonalCase = (T == 1);
-
-  if (T > 1) {
-    diagonalCase = true;
-
-    for (int j = 0; j < T && diagonalCase; ++j) {
-      for (int i = 0; i < T; ++i) {
-
-        if (i == j)
-          continue;
-
-        if (pSigmaBInv[i + j * T] != 0.0 ||
-            pSigmaEInv[i + j * T] != 0.0) {
-          diagonalCase = false;
-          break;
-        }
-      }
-    }
-  }
-
-  //------------------------------------------------------------------
-  // Memoria auxiliar
-  //------------------------------------------------------------------
-
   double *Xk;
   double *Xt_rv = (double*) R_alloc(T, sizeof(double));
   double *Bkt   = (double*) R_alloc(T, sizeof(double));
 
-  double *SigmaBk = nullptr;
-  double *tmp     = nullptr;
-  double *z       = nullptr;
+  double *SigmaBk = (double*) R_alloc(T * T, sizeof(double));
+  double *tmp     = (double*) R_alloc(T, sizeof(double));
+  double *z       = (double*) R_alloc(T, sizeof(double));
 
-  if (!diagonalCase) {
-    SigmaBk = (double*) R_alloc(T * T, sizeof(double));
-    tmp     = (double*) R_alloc(T, sizeof(double));
-    z       = (double*) R_alloc(T, sizeof(double));
+  int diagonalCase = 1;
+
+  if (T > 1) {
+
+    int i, j;
+
+    for (j = 0; j < T && diagonalCase; ++j) {
+      for (i = 0; i < T; ++i) {
+
+        if (i == j)
+          continue;
+
+        if (pSigmaBInv[i + j*T] != 0.0 ||
+            pSigmaEInv[i + j*T] != 0.0) {
+          diagonalCase = 0;
+          break;
+        }
+      }
+    }
   }
 
   GetRNGstate();
@@ -306,9 +293,9 @@ SEXP fBj_DLN_G_mtme(SEXP Bv, SEXP SigmaBInv, SEXP SigmaEInv,
 
     Xk = pX + (long long)k * N;
 
-    //----------------------------------------------------------------
-    // CASO ESCALAR
-    //----------------------------------------------------------------
+    /*------------------------------------------------------------*/
+    /* Scalar case                                                */
+    /*------------------------------------------------------------*/
 
     if (T == 1) {
 
@@ -322,53 +309,65 @@ SEXP fBj_DLN_G_mtme(SEXP Bv, SEXP SigmaBInv, SEXP SigmaEInv,
 
       rhs += px2[k] * Bk;
 
-      double c =
-        pSigmaBInv[0] +
-        px2[k] * pSigmaEInv[0];
+      {
+        double c =
+          pSigmaBInv[0] +
+          px2[k] * pSigmaEInv[0];
 
-      double mu =
-        pSigmaEInv[0] * rhs / c;
+        double mu =
+          pSigmaEInv[0] * rhs / c;
 
-      pBv[k] =
-        mu +
-        norm_rand() / sqrt(c);
+        pBv[k] =
+          mu +
+          norm_rand() / sqrt(c);
+      }
 
-      double diff = Bk - pBv[k];
+      {
+        double diff = Bk - pBv[k];
 
-      F77_CALL(daxpy)(
-        &N,
-        &diff,
-        Xk,
-        &inc,
-        prv,
-        &inc);
+        F77_CALL(daxpy)(
+          &N,
+          &diff,
+          Xk,
+          &inc,
+          prv,
+          &inc);
+      }
 
       continue;
     }
 
-    //----------------------------------------------------------------
-    // CASO DIAGONAL
-    //----------------------------------------------------------------
+    /*------------------------------------------------------------*/
+    /* Diagonal case                                               */
+    /*------------------------------------------------------------*/
 
     if (diagonalCase) {
 
-      for (int t = 0; t < T; ++t) {
+      int t;
+
+      for (t = 0; t < T; ++t) {
+
+        double rhs;
+        double c;
+        double mu;
 
         Bkt[t] = pBv[k + t * P];
 
-        double rhs =
+        rhs =
           F77_CALL(ddot)(
             &N,
-            Xk, &inc,
-            prv + t * N, &inc);
+            Xk,
+            &inc,
+            prv + t * N,
+            &inc);
 
         rhs += px2[k] * Bkt[t];
 
-        double c =
+        c =
           pSigmaBInv[t + t * T] +
           px2[k] * pSigmaEInv[t + t * T];
 
-        double mu =
+        mu =
           pSigmaEInv[t + t * T] *
           rhs / c;
 
@@ -377,7 +376,7 @@ SEXP fBj_DLN_G_mtme(SEXP Bv, SEXP SigmaBInv, SEXP SigmaEInv,
           norm_rand() / sqrt(c);
       }
 
-      for (int t = 0; t < T; ++t) {
+      for (t = 0; t < T; ++t) {
 
         double diff =
           Bkt[t] -
@@ -395,11 +394,10 @@ SEXP fBj_DLN_G_mtme(SEXP Bv, SEXP SigmaBInv, SEXP SigmaEInv,
       continue;
     }
 
-    //----------------------------------------------------------------
-    // CASO GENERAL
-    //----------------------------------------------------------------
+    /*------------------------------------------------------------*/
+    /* General Case                                     */
+    /*------------------------------------------------------------*/
 
-    // Xt_rv = t(Xk) %*% rv + x2[k] * Bk
     for (int t = 0; t < T; ++t) {
 
       Bkt[t] = pBv[k + t * P];
@@ -414,13 +412,11 @@ SEXP fBj_DLN_G_mtme(SEXP Bv, SEXP SigmaBInv, SEXP SigmaEInv,
         + px2[k] * Bkt[t];
     }
 
-    // SigmaBk = SigmaBInv + x2[k] * SigmaEInv
     for (int i = 0; i < T * T; ++i)
       SigmaBk[i] =
         pSigmaBInv[i] +
         px2[k] * pSigmaEInv[i];
 
-    // Cholesky: SigmaBk = L L'
     F77_CALL(dpotrf)(
       &uploL,
       &T,
@@ -431,7 +427,6 @@ SEXP fBj_DLN_G_mtme(SEXP Bv, SEXP SigmaBInv, SEXP SigmaEInv,
     if (info != 0)
       error("Cholesky factorization failed (k=%d)", k);
 
-    // tmp = SigmaEInv %*% Xt_rv
     F77_CALL(dgemv)(
       &transN,
       &T,
@@ -445,7 +440,6 @@ SEXP fBj_DLN_G_mtme(SEXP Bv, SEXP SigmaBInv, SEXP SigmaEInv,
       tmp,
       &inc FCONE);
 
-    // tmp = solve(SigmaBk, tmp)
     F77_CALL(dpotrs)(
       &uploL,
       &T,
@@ -459,11 +453,9 @@ SEXP fBj_DLN_G_mtme(SEXP Bv, SEXP SigmaBInv, SEXP SigmaEInv,
     if (info != 0)
       error("Solve linear system failed (k=%d)", k);
 
-    // z ~ N(0, I)
     for (int i = 0; i < T; ++i)
       z[i] = norm_rand();
 
-    // z <- L^{-T} z
     F77_CALL(dtrsv)(
       &uploL,
       &transT,
@@ -480,17 +472,19 @@ SEXP fBj_DLN_G_mtme(SEXP Bv, SEXP SigmaBInv, SEXP SigmaEInv,
       pBv[k + t * P] =
         tmp[t] + z[t];
 
-      double diff =
-        Bkt[t] -
-        pBv[k + t * P];
+      {
+        double diff =
+          Bkt[t] -
+          pBv[k + t * P];
 
-      F77_CALL(daxpy)(
-        &N,
-        &diff,
-        Xk,
-        &inc,
-        prv + t * N,
-        &inc);
+        F77_CALL(daxpy)(
+          &N,
+          &diff,
+          Xk,
+          &inc,
+          prv + t * N,
+          &inc);
+      }
     }
   }
 
