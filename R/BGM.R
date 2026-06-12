@@ -573,7 +573,7 @@ setResCov<-function (n,resCov,ntraits,Sy,R2,saveAt)
       print(resCov$priorS)
     }
     resCov$SigmaE<-diag(1/rgamma(ntraits,resCov$priorv/2,resCov$priorS/2))
-    resCov$SigmaEInv<-solve(resCov$SigmaE)
+    resCov$SigmaEInv<-diag(1/diag(resCov$SigmaE))
   }
 
   if (resCov$type == "FA") {
@@ -664,7 +664,7 @@ setResCov<-function (n,resCov,ntraits,Sy,R2,saveAt)
       resCov$PSI[k]<-1/rgamma(n=1,resCov$priorv[k]/2,resCov$priorS[k]/2)
     }
     resCov$SigmaE<-diag(ntraits) * diag(resCov$PSI) * diag(ntraits)
-    resCov$SigmaEInv<-solve(resCov$SigmaE)
+    resCov$SigmaEInv<-diag(1/diag(resCov$SigmaE))
     resCov$post_W<-matrix(0,nrow = ntraits,ncol = ntraits)
     resCov$post_W2<-matrix(0,nrow = ntraits,ncol = ntraits)
     resCov$post_PSI<-rep(0,ntraits)
@@ -720,7 +720,7 @@ setCov.DIAG<-function (Cov,ntraits,i,mo,saveAt)
     print(Cov$priorSB)
   }
   Cov$SigmaB<-diag(1/rgamma(ntraits,Cov$priorvB/2,Cov$priorSB/2))
-  Cov$SigmaBInv<-solve(Cov$SigmaB)
+  Cov$SigmaBInv<-diag(1/diag(Cov$SigmaB))
   Cov$post_SigmaB<-matrix(0,nrow = ntraits,ncol = ntraits)
   Cov$post_SigmaB2<-matrix(0,nrow = ntraits,ncol = ntraits)
 
@@ -936,7 +936,7 @@ setLT.Fixed_mt<-function(LT,n,ntraits,i,saveAt,response_type,NoWhichNa)
 
   LT$Cov<-list()
   LT$Cov$SigmaB<-diag(rep(1e+10,ntraits))
-  LT$Cov$SigmaBInv<-solve(LT$Cov$SigmaB)
+  LT$Cov$SigmaBInv<-diag(1/diag(LT$Cov$SigmaB))
 
   if (qr(LT$X)$rank < ncol(LT$X))
     stop("X is rank deficient")
@@ -2316,7 +2316,7 @@ UTME<-function(
           Term2 = (SE + SE1 + ETA[[j]]$Cov$priorSB)/2
           ETA[[j]]$Cov$SigmaB<-as.matrix(1/rgamma(1,Term1,Term2))
 
-          ETA[[j]]$Cov$SigmaBInv<-solve(ETA[[j]]$Cov$SigmaB)
+          ETA[[j]]$Cov$SigmaBInv<-1/(ETA[[j]]$Cov$SigmaB)
 
           # Sampling from posterior of Environment parameters
 
@@ -3132,7 +3132,7 @@ MTME<-function(
   }
 
   if (intercept_mt && is.null(priorSigma0)) {
-    priorSigma0<-diag(ntraits)*1e+10; priorSigma0Inv<-solve(priorSigma0)
+    priorSigma0<-diag(ntraits)*1e+10; priorSigma0Inv<-diag(1/diag(priorSigma0))
   }
 
   #-----------------------------------------------------------------------------
@@ -3383,7 +3383,12 @@ MTME<-function(
             ETA[[j]]$Cov$PSI<-tmp$PSI
             rm(tmp)
           }
-          ETA[[j]]$Cov$SigmaBInv<-solve(ETA[[j]]$Cov$SigmaB)
+          if(ETA[[j]]$Cov$type=="DIAG"){
+            ETA[[j]]$Cov$SigmaBInv<-diag(1/diag(ETA[[j]]$Cov$SigmaB))
+          }
+          else{
+            ETA[[j]]$Cov$SigmaBInv<-solve(ETA[[j]]$Cov$SigmaB)
+          }
           rv = B[[2]]
         }
 
@@ -3490,8 +3495,12 @@ MTME<-function(
             ETA[[j]]$Cov$PSI<-tmp$PSI
             rm(tmp)
           }
-
-          ETA[[j]]$Cov$SigmaBInv<-solve(ETA[[j]]$Cov$SigmaB)
+          if(ETA[[j]]$Cov$type=="DIAG"){
+            ETA[[j]]$Cov$SigmaBInv<-diag(1/diag(ETA[[j]]$Cov$SigmaB))
+          }
+          else{
+            ETA[[j]]$Cov$SigmaBInv<-solve(ETA[[j]]$Cov$SigmaB)
+          }
 
           #Sampling from posterior of Environment parameters
 
@@ -3642,7 +3651,12 @@ MTME<-function(
         resCov$PSI<-tmp$PSI
         rm(tmp)
       }
-      resCov$SigmaEInv<-solve(resCov$SigmaE)
+      if(resCov$type == "DIAG"){
+        resCov$SigmaEInv<-diag(1/diag(resCov$SigmaE))
+      }
+      else{
+        resCov$SigmaEInv<-solve(resCov$SigmaE)
+      }
     }
 
     # Prediction,missing values and logLik
