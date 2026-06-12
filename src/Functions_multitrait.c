@@ -239,68 +239,258 @@ SEXP rmvn(SEXP n_, SEXP ntraits_, SEXP mean_, SEXP Sigma_) {
 SEXP fBj_DLN_G_mtme(SEXP Bv, SEXP SigmaBInv, SEXP SigmaEInv,
            SEXP rv, SEXP X, SEXP x2, SEXP n, SEXP p, SEXP ntraits) {
 
-  PROTECT(Bv = coerceVector(Bv, REALSXP));                double* pBv = REAL(Bv); 
+  PROTECT(Bv = coerceVector(Bv, REALSXP));                double* pBv = REAL(Bv);
   PROTECT(SigmaBInv = coerceVector(SigmaBInv, REALSXP));  double* pSigmaBInv = REAL(SigmaBInv);
   PROTECT(SigmaEInv = coerceVector(SigmaEInv, REALSXP));  double* pSigmaEInv = REAL(SigmaEInv);
   PROTECT(rv = coerceVector(rv, REALSXP));                double* prv = REAL(rv);
-  PROTECT(X = coerceVector(X, REALSXP));                  double* pX = REAL(X); 
-  PROTECT(x2 = coerceVector(x2, REALSXP));                double* px2 = REAL(x2); 
+  PROTECT(X = coerceVector(X, REALSXP));                  double* pX = REAL(X);
+  PROTECT(x2 = coerceVector(x2, REALSXP));                double* px2 = REAL(x2);
   PROTECT(n = coerceVector(n, INTSXP));                   int N = INTEGER(n)[0];
   PROTECT(p = coerceVector(p, INTSXP));                   int P = INTEGER(p)[0];
-  PROTECT(ntraits = coerceVector(ntraits, INTSXP));       int T = INTEGER(ntraits)[0];     
+  PROTECT(ntraits = coerceVector(ntraits, INTSXP));       int T = INTEGER(ntraits)[0];
 
   SEXP result;
   PROTECT(result = allocVector(VECSXP, 2));
+
   int inc = 1;
   int info;
 
   char transN = 'N', transT = 'T', uploL = 'L';
   double one = 1.0, zero = 0.0;
-                             
-  double *Xk, *Xt_rv = (double*) R_alloc(T, sizeof(double));
-  double *SigmaBk = (double*) R_alloc(T * T, sizeof(double));
-  double *z = (double*) R_alloc(T, sizeof(double));
-  double *tmp = (double*) R_alloc(T, sizeof(double));
-  double* Bkt = (double*) R_alloc(T, sizeof(double));
+
+  //------------------------------------------------------------------
+  // Detectar si SigmaBInv y SigmaEInv son diagonales
+  //------------------------------------------------------------------
+
+  bool diagonalCase = (T == 1);
+
+  if (T > 1) {
+    diagonalCase = true;
+
+    for (int j = 0; j < T && diagonalCase; ++j) {
+      for (int i = 0; i < T; ++i) {
+
+        if (i == j)
+          continue;
+
+        if (pSigmaBInv[i + j * T] != 0.0 ||
+            pSigmaEInv[i + j * T] != 0.0) {
+          diagonalCase = false;
+          break;
+        }
+      }
+    }
+  }
+
+  //------------------------------------------------------------------
+  // Memoria auxiliar
+  //------------------------------------------------------------------
+
+  double *Xk;
+  double *Xt_rv = (double*) R_alloc(T, sizeof(double));
+  double *Bkt   = (double*) R_alloc(T, sizeof(double));
+
+  double *SigmaBk = nullptr;
+  double *tmp     = nullptr;
+  double *z       = nullptr;
+
+  if (!diagonalCase) {
+    SigmaBk = (double*) R_alloc(T * T, sizeof(double));
+    tmp     = (double*) R_alloc(T, sizeof(double));
+    z       = (double*) R_alloc(T, sizeof(double));
+  }
 
   GetRNGstate();
 
   for (int k = 0; k < P; ++k) {
+
     Xk = pX + (long long)k * N;
 
-    // Xt_rv = t(Xk) %*% rv (1 x T)
+    //----------------------------------------------------------------
+    // CASO ESCALAR
+    //----------------------------------------------------------------
+
+    if (T == 1) {
+
+      double Bk = pBv[k];
+
+      double rhs =
+        F77_CALL(ddot)(
+          &N,
+          Xk, &inc,
+          prv, &inc);
+
+      rhs += px2[k] * Bk;
+
+      double c =
+        pSigmaBInv[0] +
+        px2[k] * pSigmaEInv[0];
+
+      double mu =
+        pSigmaEInv[0] * rhs / c;
+
+      pBv[k] =
+        mu +
+        norm_rand() / sqrt(c);
+
+      double diff = Bk - pBv[k];
+
+      F77_CALL(daxpy)(
+        &N,
+        &diff,
+        Xk,
+        &inc,
+        prv,
+        &inc);
+
+      continue;
+    }
+
+    //----------------------------------------------------------------
+    // CASO DIAGONAL
+    //----------------------------------------------------------------
+
+    if (diagonalCase) {
+
+      for (int t = 0; t < T; ++t) {
+
+        Bkt[t] = pBv[k + t * P];
+
+        double rhs =
+          F77_CALL(ddot)(
+            &N,
+            Xk, &inc,
+            prv + t * N, &inc);
+
+        rhs += px2[k] * Bkt[t];
+
+        double c =
+          pSigmaBInv[t + t * T] +
+          px2[k] * pSigmaEInv[t + t * T];
+
+        double mu =
+          pSigmaEInv[t + t * T] *
+          rhs / c;
+
+        pBv[k + t * P] =
+          mu +
+          norm_rand() / sqrt(c);
+      }
+
+      for (int t = 0; t < T; ++t) {
+
+        double diff =
+          Bkt[t] -
+          pBv[k + t * P];
+
+        F77_CALL(daxpy)(
+          &N,
+          &diff,
+          Xk,
+          &inc,
+          prv + t * N,
+          &inc);
+      }
+
+      continue;
+    }
+
+    //----------------------------------------------------------------
+    // CASO GENERAL
+    //----------------------------------------------------------------
+
+    // Xt_rv = t(Xk) %*% rv + x2[k] * Bk
     for (int t = 0; t < T; ++t) {
+
       Bkt[t] = pBv[k + t * P];
-      Xt_rv[t] = F77_CALL(ddot)(&N, Xk, &inc, prv + t * N, &inc) + px2[k]*Bkt[t];
+
+      Xt_rv[t] =
+        F77_CALL(ddot)(
+          &N,
+          Xk,
+          &inc,
+          prv + t * N,
+          &inc)
+        + px2[k] * Bkt[t];
     }
 
     // SigmaBk = SigmaBInv + x2[k] * SigmaEInv
     for (int i = 0; i < T * T; ++i)
-      SigmaBk[i] = pSigmaBInv[i] + px2[k] * pSigmaEInv[i];
+      SigmaBk[i] =
+        pSigmaBInv[i] +
+        px2[k] * pSigmaEInv[i];
 
-    // Cholesky: SigmaBk = L * L^T
-    F77_CALL(dpotrf)(&uploL, &T, SigmaBk, &T, &info FCONE);
-    if (info != 0) error("Cholesky factorization failed (k=%d)", k);
+    // Cholesky: SigmaBk = L L'
+    F77_CALL(dpotrf)(
+      &uploL,
+      &T,
+      SigmaBk,
+      &T,
+      &info FCONE);
+
+    if (info != 0)
+      error("Cholesky factorization failed (k=%d)", k);
 
     // tmp = SigmaEInv %*% Xt_rv
-    F77_CALL(dgemv)(&transN, &T, &T, &one, pSigmaEInv, &T, Xt_rv, &inc, &zero, tmp, &inc FCONE);
+    F77_CALL(dgemv)(
+      &transN,
+      &T,
+      &T,
+      &one,
+      pSigmaEInv,
+      &T,
+      Xt_rv,
+      &inc,
+      &zero,
+      tmp,
+      &inc FCONE);
 
-    // muBk = solve(SigmaBk, tmp)
-    F77_CALL(dpotrs)(&uploL, &T, &inc, SigmaBk, &T, tmp, &T, &info FCONE);
-    if (info != 0) error("Solve linear system failed (k=%d)", k);
+    // tmp = solve(SigmaBk, tmp)
+    F77_CALL(dpotrs)(
+      &uploL,
+      &T,
+      &inc,
+      SigmaBk,
+      &T,
+      tmp,
+      &T,
+      &info FCONE);
 
-    // z ~ N(0,I)
+    if (info != 0)
+      error("Solve linear system failed (k=%d)", k);
+
+    // z ~ N(0, I)
     for (int i = 0; i < T; ++i)
       z[i] = norm_rand();
 
-    // Solve: L^T y = z (i.e., z := L^{-T} z)
-    F77_CALL(dtrsv)(&uploL, &transT, "N", &T, SigmaBk, &T, z, &inc FCONE FCONE FCONE);
+    // z <- L^{-T} z
+    F77_CALL(dtrsv)(
+      &uploL,
+      &transT,
+      "N",
+      &T,
+      SigmaBk,
+      &T,
+      z,
+      &inc
+      FCONE FCONE FCONE);
 
-    // rv -= Xk * diff
-    for (int t = 0; t < T; ++t) { 
-      pBv[k + t * P] = tmp[t] + z[t];
-      double diff = Bkt[t] - pBv[k + t * P];
-      F77_CALL(daxpy)(&N, &diff, Xk, &inc, prv + t * N, &inc);
+    for (int t = 0; t < T; ++t) {
+
+      pBv[k + t * P] =
+        tmp[t] + z[t];
+
+      double diff =
+        Bkt[t] -
+        pBv[k + t * P];
+
+      F77_CALL(daxpy)(
+        &N,
+        &diff,
+        Xk,
+        &inc,
+        prv + t * N,
+        &inc);
     }
   }
 
