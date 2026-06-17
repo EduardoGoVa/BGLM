@@ -1906,6 +1906,10 @@ UTME<-function(
 
   # Initial values
   #-----------------------------------------------------------------------------
+  if (nNa > 0) {
+    f_y_posterior<-file(description = paste(saveAt,"y_posterior.dat"),open = "w")
+  }
+
   if(intercept[[1]]){
     beta0 = 0
     post_beta0 = 0
@@ -2434,6 +2438,9 @@ UTME<-function(
       if(nNa>0){
         yStar[whichNa] = floor(exp(rv[whichNa]+rnorm(n=nNa,sd=sqrt(varE))))
         ay[whichNa] = log(yStar[whichNa]);  by[whichNa] = log(yStar[whichNa]+1)
+
+        #Save the posterior samples
+        write(yStar[whichNa],ncolumns = nNa,file = y_posterior,append = TRUE)
       }
     }
 
@@ -2442,6 +2449,9 @@ UTME<-function(
       y_tr = exp(rvPois)
       if(nNa>0){
         yStar[whichNa] = rpois(n=nNa,lambda=y_tr[whichNa])
+
+        #Save the posterior samples
+        write(yStar[whichNa],ncolumns = nNa,file = y_posterior,append = TRUE)
       }
     }
 
@@ -2456,6 +2466,9 @@ UTME<-function(
       y_tr = exp(rvPois + varE/2)
       if(nNa>0){
         yStar[whichNa] = rpois(n=nNa,lambda=exp(rvPois[whichNa]+U[whichNa]))
+
+        #Save the posterior samples
+        write(yStar[whichNa],ncolumns = nNa,file = y_posterior,append = TRUE)
       }
     }
 
@@ -2467,6 +2480,9 @@ UTME<-function(
       if(nNa>0){
         yStar[whichNa] = y_tr[whichNa] + rnorm(n=nNa,sd=sqrt(varE))
         rv[whichNa] = yStar[whichNa] - y_tr[whichNa]
+
+        #Save the posterior samples
+        write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
       }
     }
 
@@ -2705,6 +2721,10 @@ UTME<-function(
   message("Time = ",round((tmp-time)/60,3)," minutes")
   cat('\n')
   #-----------------------------------------------------------------------------
+  if (nNa > 0) {
+    close(f_y_posterior); f_y_posterior<-NULL
+  }
+
   if(intercept[[1]]){
     close(f_beta0); f_beta0<-NULL
   }
