@@ -1911,7 +1911,7 @@ UTME<-function(
                         open = "w")
     f_mu<-file(description = paste(saveAt,"mu.dat",sep = ""),
                         open = "w")
-    if(response_type=="Poisson"){
+    if(response_type%in%c("Poisson","PLN")){
         f_r<-file(description = paste(saveAt,"r.dat",sep = ""),
                         open = "w")
     }
@@ -2485,7 +2485,8 @@ UTME<-function(
         #Save the posterior samples
         write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
         write(exp(rvPois[whichNa]+U[whichNa]),ncolumns = nNa,file = f_mu,append = TRUE)
-        write(r[whichNa],ncolumns = nNa,file = f_varE,append = TRUE)
+        write(r,ncolumns = length(r),file = f_r,append = TRUE)
+        write(varE,ncolumns = length(varE),file = f_varE,append = TRUE)
       }
     }
 
@@ -2743,7 +2744,7 @@ UTME<-function(
   if (nNa > 0) {
     close(f_y_posterior); f_y_posterior<-NULL
     close(f_mu); f_mu<-NULL
-    if(response_type=="Poisson"){
+    if(response_type%in%c("Poisson","PLN")){
         close(f_r); f_r<-NULL
     }
     if(response_type%in%c("DLN","gaussian","PLN")){
