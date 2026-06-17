@@ -1911,8 +1911,13 @@ UTME<-function(
                         open = "w")
     f_mu<-file(description = paste(saveAt,"mu.dat",sep = ""),
                         open = "w")
-    f_varE<-file(description = paste(saveAt,"varE.dat",sep = ""),
+    if(response_type=="Poisson"){
+        f_r<-file(description = paste(saveAt,"r.dat",sep = ""),
                         open = "w")
+    }else{
+      f_varE<-file(description = paste(saveAt,"varE.dat",sep = ""),
+                        open = "w")
+    }
   }
 
   if(intercept[[1]]){
@@ -2460,6 +2465,7 @@ UTME<-function(
         #Save the posterior samples
         write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
         write(y_tr[whichNa],ncolumns = nNa,file = f_mu,append = TRUE)
+        write(r[whichNa],ncolumns = nNa,file = f_r,append = TRUE)
       }
     }
 
@@ -2737,6 +2743,9 @@ UTME<-function(
     close(f_y_posterior); f_y_posterior<-NULL
     close(f_mu); f_mu<-NULL
     close(f_varE); f_varE<-NULL
+    if(response_type=="Poisson"){
+        close(f_r); f_r<-NULL
+    }
   }
 
   if(intercept[[1]]){
