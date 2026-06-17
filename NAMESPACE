@@ -2,4 +2,4 @@
 
 export(MTME)
 export(UTME)
-useDynLib(BGM, .registration = TRUE)
+useDynLib(BGLM, .registration = TRUE)
