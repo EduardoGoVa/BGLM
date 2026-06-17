@@ -1909,6 +1909,10 @@ UTME<-function(
   if (nNa > 0) {
     f_y_posterior<-file(description = paste(saveAt,"y_posterior.dat",sep = ""),
                         open = "w")
+    f_mu<-file(description = paste(saveAt,"mu.dat",sep = ""),
+                        open = "w")
+    f_varE<-file(description = paste(saveAt,"varE.dat",sep = ""),
+                        open = "w")
   }
 
   if(intercept[[1]]){
@@ -2442,6 +2446,8 @@ UTME<-function(
 
         #Save the posterior samples
         write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
+        write(rv[whichNa],ncolumns = nNa,file = f_mu,append = TRUE)
+        write(varE,ncolumns = length(varE),file = f_varE,append = TRUE)
       }
     }
 
@@ -2453,6 +2459,7 @@ UTME<-function(
 
         #Save the posterior samples
         write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
+        write(y_tr[whichNa],ncolumns = nNa,file = f_mu,append = TRUE)
       }
     }
 
@@ -2470,6 +2477,8 @@ UTME<-function(
 
         #Save the posterior samples
         write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
+        write(rv[whichNa],ncolumns = nNa,file = f_mu,append = TRUE)
+        write(exp(rvPois[whichNa]+U[whichNa]),ncolumns = length(varE),file = f_varE,append = TRUE)
       }
     }
 
@@ -2484,6 +2493,8 @@ UTME<-function(
 
         #Save the posterior samples
         write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
+        write(y_tr[whichNa],ncolumns = nNa,file = f_mu,append = TRUE)
+        write(varE,ncolumns = length(varE),file = f_varE,append = TRUE)
       }
     }
 
@@ -2724,6 +2735,8 @@ UTME<-function(
   #-----------------------------------------------------------------------------
   if (nNa > 0) {
     close(f_y_posterior); f_y_posterior<-NULL
+    close(f_mu); f_mu<-NULL
+    close(f_varE); f_varE<-NULL
   }
 
   if(intercept[[1]]){
