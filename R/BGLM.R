@@ -1907,7 +1907,8 @@ UTME<-function(
   # Initial values
   #-----------------------------------------------------------------------------
   if (nNa > 0) {
-    f_y_posterior<-file(description = paste(saveAt,"y_posterior.dat"),open = "w")
+    f_y_posterior<-file(description = paste(saveAt,"y_posterior.dat",sep = ""),
+                        open = "w")
   }
 
   if(intercept[[1]]){
