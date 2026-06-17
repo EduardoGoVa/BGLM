@@ -2742,9 +2742,10 @@ UTME<-function(
   if (nNa > 0) {
     close(f_y_posterior); f_y_posterior<-NULL
     close(f_mu); f_mu<-NULL
-    close(f_varE); f_varE<-NULL
     if(response_type=="Poisson"){
         close(f_r); f_r<-NULL
+    }else{
+      close(f_varE); f_varE<-NULL
     }
   }
 
