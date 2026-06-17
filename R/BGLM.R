@@ -2451,7 +2451,7 @@ UTME<-function(
         yStar[whichNa] = rpois(n=nNa,lambda=y_tr[whichNa])
 
         #Save the posterior samples
-        write(yStar[whichNa],ncolumns = nNa,file = y_posterior,append = TRUE)
+        write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
       }
     }
 
