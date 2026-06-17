@@ -1915,7 +1915,7 @@ UTME<-function(
         f_r<-file(description = paste(saveAt,"r.dat",sep = ""),
                         open = "w")
     }
-    if(response_type%in%c("DLN","gaussian","PLN"){
+    if(response_type%in%c("DLN","gaussian","PLN")){
       f_varE<-file(description = paste(saveAt,"varE.dat",sep = ""),
                         open = "w")
     }
@@ -2746,7 +2746,7 @@ UTME<-function(
     if(response_type=="Poisson"){
         close(f_r); f_r<-NULL
     }
-    if(response_type)%in%c("DLN","gaussian","PLN"){
+    if(response_type%in%c("DLN","gaussian","PLN")){
       close(f_varE); f_varE<-NULL
     }
   }
