@@ -2484,7 +2484,7 @@ UTME<-function(
         #Save the posterior samples
         write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
         write(exp(rvPois[whichNa]+U[whichNa]),ncolumns = nNa,file = f_mu,append = TRUE)
-        write(r[WhichNa],ncolumns = nNa,file = f_varE,append = TRUE)
+        write(r[whichNa],ncolumns = nNa,file = f_varE,append = TRUE)
       }
     }
 
