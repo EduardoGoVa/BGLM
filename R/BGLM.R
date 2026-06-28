@@ -911,7 +911,7 @@ sample_G0_REC<-function (U,M,PSI,ntraits,priorVar = 100,df0 = rep(0,ntraits),
   return(out)
 }
 
-setLT.Fixed_mt<-function(LT,n,ntraits,i,saveAt,response_type,NoWhichNa)
+setLT.Fixed_mt<-function(LT,n,ntraits,i,saveAt,response_type,NoWhichNa,nRow)
 {
 
   message("Setting linear term ",i)
@@ -953,11 +953,35 @@ setLT.Fixed_mt<-function(LT,n,ntraits,i,saveAt,response_type,NoWhichNa)
   LT$post_Bv<-matrix(0,nrow = LT$p,ncol = ntraits)
   LT$post_Bv2<-matrix(0,nrow = LT$p,ncol = ntraits)
 
+  #Files to save binary files with betas
+	if(is.null(LT$saveEffects))
+	{
+		LT$saveEffects<-FALSE
+	}
+	
+    if(LT$saveEffects)
+    {
+        if(is.null(LT$storageMode))
+        {
+        	LT$storageMode<-"double"
+        }
+        
+        if(!LT$storageMode%in%c("single","double")) 
+        {
+            stop("storageMode of LP ",i," can either be 'single' or 'double' (default)")
+        }
+         	
+    	fname<-paste(saveAt,LT$Name,"_beta.bin",sep="")
+    	LT$fileEffects<-file(fname,open='wb')
+    	writeBin(object=c(nRow,traits,LT$p),con=LT$fileEffects,size=ifelse(LT$storageMode=="single",4,8))
+    	
+    }#*#
+                  
   return(LT)
 
 }
 
-setLT.BRR_mt<-function(LT,n,ntraits,i,Sy,nLT,R2,saveAt,response_type,NoWhichNa)
+setLT.BRR_mt<-function(LT,n,ntraits,i,Sy,nLT,R2,saveAt,response_type,NoWhichNa,nRow)
 {
 
   message("Setting linear term ",i)
@@ -1008,6 +1032,30 @@ setLT.BRR_mt<-function(LT,n,ntraits,i,Sy,nLT,R2,saveAt,response_type,NoWhichNa)
   LT$post_Bv<-matrix(0,nrow = LT$p,ncol = ntraits)
   LT$post_Bv2<-matrix(0,nrow = LT$p,ncol = ntraits)
 
+  #Files to save binary files with betas
+	if(is.null(LT$saveEffects))
+	{
+		LT$saveEffects<-FALSE
+	}
+	
+    if(LT$saveEffects)
+    {
+        if(is.null(LT$storageMode))
+        {
+        	LT$storageMode<-"double"
+        }
+        
+        if(!LT$storageMode%in%c("single","double")) 
+        {
+            stop("storageMode of LP ",i," can either be 'single' or 'double' (default)")
+        }
+         	
+    	fname<-paste(saveAt,LT$Name,"_beta.bin",sep="")
+    	LT$fileEffects<-file(fname,open='wb')
+    	writeBin(object=c(nRow,traits,LT$p),con=LT$fileEffects,size=ifelse(LT$storageMode=="single",4,8))
+    	
+    }#*#
+                  
   return(LT)
 
 }
@@ -1057,8 +1105,10 @@ setLT.RKHS_mt<-function(LT,n,ntraits,i,Sy,nLT,R2,saveAt,response_type,NoWhichNa)
   # X=Gamma*Lambda^{1/2}
   LT$X<-sweep(x=LT$EVD$vectors,MARGIN=2,STATS=sqrt(LT$EVD$values),FUN="*")
 
+  #We do not save effects in RKHS
+  LT$saveEffects<-FALSE
   LT<-setLT.BRR_mt(LT=LT,n=n,ntraits=ntraits,i=i,Sy=Sy,nLT=nLT,R2=R2,saveAt=saveAt,
-                    response_type=response_type,NoWhichNa=NoWhichNa)
+                    response_type=response_type,NoWhichNa=NoWhichNa,nRow=0)
 
   return(LT)
 
@@ -1331,8 +1381,10 @@ setLT.RKHS_mtme<-function(LT,n,ntraits,i,y,Sy,nLT,R2,saveAt,response_type,NoWhic
     Aux<-sweep(x=LT$EVD$vectors,MARGIN=2,STATS=sqrt(LT$EVD$values),FUN="*")
     LT$X<-LT$GxT$Z%*%Aux
 
+    #We do not save effects in RKHS
+    LT$saveEffects<-FALSE
     LT<-setLT.BRR_mt(LT=LT,n=n,ntraits=ntraits,i=i,Sy=Sy,nLT=nLT,R2=R2,saveAt=saveAt,
-                     response_type=response_type,NoWhichNa=NoWhichNa)
+                     response_type=response_type,NoWhichNa=NoWhichNa,nRow=0)
 
     if(LT$Cov$type=="FA"){
       LT$F2<-matrix(nrow = LT$nLinesEnvs,ncol = LT$Cov$nF,0)
@@ -1426,8 +1478,10 @@ setLT.RKHS_mtme<-function(LT,n,ntraits,i,y,Sy,nLT,R2,saveAt,response_type,NoWhic
     Aux<-sweep(x=LT$EVD$vectors,MARGIN=2,STATS=sqrt(LT$EVD$values),FUN="*")
     LT$X<-LT$GxT$Z%*%Aux
 
+    #We do not save effects in RKHS
+    LT$saveEffects<-FALSE
     LT<-setLT.BRR_mt(LT=LT,n=n,ntraits=ntraits,i=i,Sy=Sy,nLT=nLT,R2=R2,saveAt=saveAt,
-                     response_type=response_type,NoWhichNa=NoWhichNa)
+                     response_type=response_type,NoWhichNa=NoWhichNa,nRow=0)
 
     # For environment sample variances
     y_Env = matrix(matrixcalc::vec(t(y)),ncol=LT$nEnv,byrow=F)
@@ -3184,6 +3238,8 @@ MTME<-function(
     if(length(sublists)==0) 1 else length(sublists)
   }))
 
+  nRow<-(nIter-nBurnin)/nThin
+  
   if(nLT > 0){
     if (is.null(names(ETA))) {
       names(ETA)<-rep("",nLT)
@@ -3210,10 +3266,10 @@ MTME<-function(
         }
       }
 
-      ETA[[i]] = switch(ETA[[i]]$model,FIXED=setLT.Fixed_mt(LT=ETA[[i]],n=n,
-                                                            ntraits=ntraits,i=i,saveAt=saveAt,response_type=response_type,NoWhichNa=NoWhichNa),
-                        BRR=setLT.BRR_mt(LT=ETA[[i]],n=n,ntraits=ntraits,i=i,
-                                         Sy=Sy,nLT=nLT_total,R2=R2,saveAt=saveAt,response_type=response_type,NoWhichNa=NoWhichNa),
+      ETA[[i]] = switch(ETA[[i]]$model,FIXED=setLT.Fixed_mt(LT=ETA[[i]],n=n,ntraits=ntraits,i=i,saveAt=saveAt,response_type=response_type,
+                                                            NoWhichNa=NoWhichNa,nRow=nRow),
+                        BRR=setLT.BRR_mt(LT=ETA[[i]],n=n,ntraits=ntraits,i=i,Sy=Sy,nLT=nLT_total,R2=R2,saveAt=saveAt,
+                                         response_type=response_type,NoWhichNa=NoWhichNa,nRow=nRow),
                         RKHS=setLT.RKHS_mt(LT=ETA[[i]],n=n,ntraits=ntraits,i=i,Sy=Sy,
                                            nLT=nLT_total,R2=R2,saveAt=saveAt,response_type=response_type,NoWhichNa=NoWhichNa),
                         RKHS_mtme=setLT.RKHS_mtme(LT=ETA[[i]],n=n,ntraits=ntraits,i=i,y=y,Sy=Sy,
@@ -3782,6 +3838,16 @@ MTME<-function(
 
         if(nLT > 0){
           for (j in 1:nLT) {
+          if(ETA[[j]]$model%in%c("BRR","FIXED"))
+				  {
+					    if(ETA[[j]]$saveEffects)
+					    {
+                  writeBin(object=as.vector(ETA[[j]]$Bv),
+                           con=ETA[[j]]$fileEffects,
+                           size=ifelse(ETA[[j]]$storageMode=="single",4,8))
+              }
+          }
+            
             if(ETA[[j]]$model=="FIXED"){
               ETA[[j]]$post_Bv = (ETA[[j]]$Bv + (nk - 1) * ETA[[j]]$post_Bv) / nk
               ETA[[j]]$post_Bv2 = (ETA[[j]]$Bv^2 + (nk - 1) * ETA[[j]]$post_Bv2) / nk
@@ -3977,6 +4043,24 @@ MTME<-function(
   close(f_logLik)
   f_logLik<-NULL
 
+  #Close Effect files
+	for(j in 1:nLT)
+	{
+		  if(!is.null(ETA[[j]]$fileEffects))
+		  {
+        	flush(ETA[[j]]$fileEffects)
+          close(ETA[[j]]$fileEffects)
+          ETA[[j]]$fileEffects<-NULL
+            
+          if(!is.null(ETA[[j]]$compressEffects) && ETA[[j]]$compressEffects)
+          {
+            	message("Compressing binary file for effects for term ", j)
+            	compressFile(paste(saveAt,ETA[[j]]$Name,"_beta.bin",sep=""))
+            	message("Done")
+          }        
+      }
+    }
+  
   # Bayesian estimations
   #---------------------------------------------------------------------------
   # Predictions
