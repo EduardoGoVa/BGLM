@@ -973,7 +973,7 @@ setLT.Fixed_mt<-function(LT,n,ntraits,i,saveAt,response_type,NoWhichNa,nRow)
          	
     	fname<-paste(saveAt,LT$Name,"_beta.bin",sep="")
     	LT$fileEffects<-file(fname,open='wb')
-    	writeBin(object=c(nRow,traits,LT$p),con=LT$fileEffects,size=ifelse(LT$storageMode=="single",4,8))
+    	writeBin(object=c(nRow,ntraits,LT$p),con=LT$fileEffects,size=ifelse(LT$storageMode=="single",4,8))
     	
     }#*#
                   
@@ -1052,7 +1052,7 @@ setLT.BRR_mt<-function(LT,n,ntraits,i,Sy,nLT,R2,saveAt,response_type,NoWhichNa,n
          	
     	fname<-paste(saveAt,LT$Name,"_beta.bin",sep="")
     	LT$fileEffects<-file(fname,open='wb')
-    	writeBin(object=c(nRow,traits,LT$p),con=LT$fileEffects,size=ifelse(LT$storageMode=="single",4,8))
+    	writeBin(object=c(nRow,ntraits,LT$p),con=LT$fileEffects,size=ifelse(LT$storageMode=="single",4,8))
     	
     }#*#
                   
