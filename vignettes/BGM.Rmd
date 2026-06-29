@@ -1,15 +1,15 @@
 ---
-title: "Bayesian Generalized Models"
+title: "Bayesian Generalized Linear Models"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Bayesian Generalized Models}
+  %\VignetteIndexEntry{Bayesian Generalized Linear Models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 # Overview
 
-This package fits Bayesian generalized models using MCMC.
+This package fits Bayesian generalized linear models using MCMC.
 
 # Methodological details
 
@@ -20,7 +20,7 @@ Full details are available in the paper:
 # Example
 
 ```r
-library(BGM)
+library(BGLM)
 
 y <- floor(exp(rlnorm(100)))
 
