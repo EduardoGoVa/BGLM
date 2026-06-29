@@ -13,9 +13,8 @@ This package fits Bayesian generalized linear models using MCMC.
 
 # Methodological details
 
-Full details are available in the paper:
-
-[Full methodology]("pending to be added")
+Full details are available in the associated manuscript.  
+The link will be added after publication.
 
 # Example
 
