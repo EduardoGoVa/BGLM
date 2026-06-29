@@ -15,7 +15,7 @@ This package fits Bayesian generalized linear models using MCMC.
 
 Full details are available in the paper:
 
-[Full methodology](DLN-UTME_Model.pdf)
+[Full methodology]("pending to be added")
 
 # Example
 
@@ -25,4 +25,6 @@ library(BGLM)
 y <- floor(exp(rlnorm(100)))
 
 fit <- UTME(y=y)
+
+str(fit)
 ```
