@@ -1813,6 +1813,8 @@ UTME<-function(
     rcontrol=1.15,
     type_prediction="mean",
     intercept=list(TRUE,0),
+	a0<-0.01,
+	b0<-0.01,
     verbose=F,
     saveAt=""
     ){
@@ -2030,7 +2032,6 @@ UTME<-function(
     rv = yStar - rep(0,n)
   }
   if(response_type == "NB"){
-	a0 <- 0.01; b0 <- 0.01
 	r <- rgamma(1, shape = a0, scale = 1/b0)
     L <- rep(0,n)
     y_r = yStar+r
@@ -3250,8 +3251,11 @@ MTME<-function(
     Thin_latent=1,
     n_QMCpoints=10,
     intercept_mt=T,
+	a0=0.01,
+    b0=0.01,
     verbose=F,
-    saveAt=""){
+    saveAt="",
+    ){
 
   # nIter and nBurnin validation
   if (!is.null(nIter) && !is.null(nBurnin)) {
@@ -3432,7 +3436,6 @@ MTME<-function(
     rv = yStar - matrix(0,nrow = n,ncol = ntraits)
   }
   if(response_type == "NB"){
-	a0 <- 0.01; b0 <- 0.01
     L <- matrix(0,nrow = n,ncol = ntraits)
     r <- rgamma(ntraits, shape = a0, scale = 1/b0)
     y_r = yStar+r
