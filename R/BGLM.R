@@ -3929,6 +3929,7 @@ MTME<-function(
 
     if(response_type == "NB"){
       rv = rv + log(r)
+	  Pi = y_tr/(r+y_tr)
       for(t in 1:T){  
       	shape <- a0 + sum(L[, t])
     
