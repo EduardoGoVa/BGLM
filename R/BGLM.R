@@ -2562,7 +2562,7 @@ UTME<-function(
         #Save the posterior samples
         write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
         write(y_tr[whichNa],ncolumns = nNa,file = f_mu,append = TRUE)
-        write(r[whichNa],ncolumns = nNa,file = f_r,append = TRUE)
+        write(r,ncolumns = nNa,file = f_r,append = TRUE)
       }
     }
 	  
@@ -2620,7 +2620,7 @@ UTME<-function(
 
 	if(response_type == "NB"){
 	  rv = rv + log(r)
-	  pi = y_tr/(r+y_tr)
+	  pi = r/(r+y_tr)
       shape <- a0 + sum(L)
       rate  <- b0 - sum(log(1 - pi))
       r <- rgamma(1,shape = shape,scale = 1/rate)
@@ -3929,7 +3929,7 @@ MTME<-function(
 
     if(response_type == "NB"){
       rv = rv + log(r)
-	  Pi = y_tr/(r+y_tr)
+	  Pi = r/(r+y_tr)
       for(t in 1:T){  
       	shape <- a0 + sum(L[, t])
     
