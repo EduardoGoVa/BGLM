@@ -3254,7 +3254,7 @@ MTME<-function(
 	a0=0.01,
     b0=0.01,
     verbose=F,
-    saveAt="",
+    saveAt=""
     ){
 
   # nIter and nBurnin validation
