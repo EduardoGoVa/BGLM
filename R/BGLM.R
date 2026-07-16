@@ -3889,7 +3889,7 @@ MTME<-function(
       if(nNa>0){
         rp = y_tr[!NoWhichNa,]
 		size_vec <- rep(r, each = nNa)
-        yStar[!NoWhichNa,] = matrix(rnbinom(n=nNa*ntraits,size=size_vec,prob=as.vector(P),nrow=nNa,ncol=ntraits)
+        yStar[!NoWhichNa,] = matrix(rnbinom(n=nNa*ntraits,size=size_vec,prob=as.vector(P)),nrow=nNa,ncol=ntraits)
       }
       loglik = fllp_NB_multi(rv=rv[NoWhichNa,],y=y[NoWhichNa,],r=r,ntraits = ntraits)
     }
