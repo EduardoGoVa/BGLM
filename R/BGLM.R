@@ -4,6 +4,15 @@ NULL
 # Functions
 #-------------------------------------------------------------------------------
 
+CRT_function <- function(y, r){
+  
+  if(y == 0) return(0)
+  
+  p <- r/(r + 0:(y-1))
+  
+  sum(rbinom(y, 1, p))
+}
+
 ################################# Uni-trait #################################
 
 build_blocks<-function(p,k){
@@ -1610,14 +1619,14 @@ fB0_DLN_multi<-function(priorSigma0Inv = NULL,SigmaEInv,rv = NULL,n = NULL) {
   return(MASS::mvrnorm(n=1,mu=Mu0,Sigma=Sigma0))
 }
 
-# Posterior distribution for intercept in Poisson and Poisson-lognormal UT models
+# Posterior distribution for intercept in NB, Poisson and Poisson-lognormal UT models
 fB0_P<-function(l=NULL,Syr=NULL,priorvarbeta0=NULL,rv=NULL)
 {
   varbeta0=1/(sum(l)+(1/priorvarbeta0)); Mu_0=varbeta0*((Syr/2)-(l%*%rv))
   return(rnorm(1,Mu_0,sqrt(varbeta0)))
 }
 
-# Posterior distribution for intercept in Poisson and Poisson-lognormal MT models
+# Posterior distribution for intercept in NB, Poisson and Poisson-lognormal MT models
 fB0_P_multi<-function(l = NULL,Syr = NULL,priorSigma0Inv = NULL,rv = NULL){
 
   tmp<-diag(colSums(l)) + priorSigma0Inv
@@ -1686,6 +1695,27 @@ fllp_DLN_multi<-function(y = NULL,n = NULL,ntraits = NULL,a = NULL,b = NULL,
   return(loglik_total)
 }
 
+# Posterior Log-likelihood for NB-UT model
+fllp_NB<-function(rv=NULL,y=NULL,r=NULL)
+{
+  mu = exp(rv + log(r)) 
+  P = mu/(r+mu)
+  return(sum(dnbinom(y,size=r,prob=P,log=TRUE)))
+}
+
+# Posterior Log-likelihood for NB-MT model
+fllp_NB_multi<-function(rv=NULL,y=NULL,r=NULL,ntraits=NULL)
+{
+  mu = exp(rv + log(r))
+  P = mu/(r+mu)
+  loglik_total = 0
+  for (i in 1:ntraits) {
+    loglik_total = loglik_total + sum(dnbinom(y[,i],r[i],P[,i],log=TRUE))
+  }
+
+  return(loglik_total)
+}
+			   
 # Posterior Log-likelihood for Poisson-UT model
 fllp_P<-function(rv=NULL,y=NULL,r=NULL)
 {
@@ -1795,8 +1825,8 @@ UTME<-function(
   }
 
   # Response type validation
-  if (!(response_type %in% c("DLN","Poisson","PLN","gaussian"))){
-    stop("Only DLN,Poisson,PLN,or gaussian responses are allowed
+  if (!(response_type %in% c("DLN","NB","Poisson","PLN","gaussian"))){
+    stop("Only DLN, NB, Poisson, PLN, or gaussian responses are allowed
            (note: evaluation is case sensitive)")
   }
 
@@ -1870,7 +1900,7 @@ UTME<-function(
         if(response_type == "DLN"){
           Sy<-cov(log(y1+1),use = "pairwise.complete.obs")
         }
-        if(response_type%in%c("Poisson","PLN")){
+        if(response_type%in%c("NB","Poisson","PLN")){
           aux<-colMeans(log(y1+1),na.rm=TRUE)
           Sy<-outer(sqrt(aux),sqrt(aux))
           if(!matrixcalc::is.positive.definite(Sy)){
@@ -1965,7 +1995,7 @@ UTME<-function(
                         open = "w")
     f_mu<-file(description = paste(saveAt,"mu.dat",sep = ""),
                         open = "w")
-    if(response_type%in%c("Poisson","PLN")){
+    if(response_type%in%c("NB","Poisson","PLN")){
         f_r<-file(description = paste(saveAt,"r.dat",sep = ""),
                         open = "w")
     }
@@ -1999,6 +2029,17 @@ UTME<-function(
   if(response_type == "gaussian"){
     rv = yStar - rep(0,n)
   }
+  if(response_type == "NB"){
+	a0 <- 0.01; b0 <- 0.01
+	r <- rgamma(1, shape = a0, scale = 1/b0)
+    L <- rep(0,n)
+    y_r = yStar+r
+    yr = (yStar - r) / 2
+    Syr = sum(yStar-r)
+    post_r = rep(0,n)
+    post_r2 = rep(0,n)
+    rv = rep(0,n) - log(r)
+  }
   if(response_type == "Poisson"){
     r = (yStar+1) * 10^(rcontrol)
     y_r = yStar+r
@@ -2024,12 +2065,14 @@ UTME<-function(
 
   fL_fun<-switch(response_type,
                    DLN = function(...) fL(n=n,a=ay,b=by,rv=rv,varE=varE),
+				   NB = function(...) fL_P(y_r=y_r,n=n,rv=rv),
                    Poisson = function(...) fL_P(y_r=y_r,n=n,rv=rv),
                    PLN = function(...) fL_P(y_r=y_r,n=n,rv=rv)
   )
 
   fB0_fun<-switch(response_type,
                     DLN = function(...) fB0_DLN(priorvarbeta0=priorvarbeta0,varE=varE,rv=rv,n=n),
+				    NB = function(...) fB0_P(l=l,Syr=Syr,priorvarbeta0=priorvarbeta0,rv=rv),
                     Poisson = function(...) fB0_P(l=l,Syr=Syr,priorvarbeta0=priorvarbeta0,rv=rv),
                     PLN = function(...) fB0_P(l=l,Syr=Syr,priorvarbeta0=priorvarbeta0,rv=rv),
                     gaussian = function(...) fB0_G(priorvarbeta0=priorvarbeta0,varE=varE,rv=rv,n=n)
@@ -2040,6 +2083,7 @@ UTME<-function(
                      PLN = function(...) .Call("fllp_PLN",y[obs_idx],logy_factorial,
                                                rvPois[obs_idx],varE,gh$nodes,gh$weights,
                                                n-nNa,Q,PACKAGE="BGLM"),
+				     NB = function(...) fllp_NB(rv=rv[obs_idx],y=y[obs_idx],r=r),
                      Poisson = function(...) fllp_P(rv=rv[obs_idx],y=y[obs_idx],r=r[obs_idx]),
                      gaussian = function(...) fllp_G(rv=rv[obs_idx],varE=varE,y=y[obs_idx])
   )
@@ -2086,7 +2130,7 @@ UTME<-function(
             }
           }
 
-          if(response_type %in% c("Poisson","PLN")){
+          if(response_type %in% c("NB","Poisson","PLN")){
             # Sampling from full conditional of Bj's
             if(ETA[[j]]$update == "scalar"){
               B = .Call("fBj_P",l,yr,ETA[[j]]$Bv,ETA[[j]]$priorvarB,
@@ -2118,7 +2162,7 @@ UTME<-function(
             }
           }
 
-          if(response_type %in% c("Poisson","PLN")){
+          if(response_type %in% c("NB","Poisson","PLN")){
             # Sampling from full conditional of Bj's
             if(ETA[[j]]$update == "scalar"){
               B = .Call("fBj_P",l,yr,ETA[[j]]$Bv,rep(ETA[[j]]$varB,ETA[[j]]$p),
@@ -2155,7 +2199,7 @@ UTME<-function(
             }
           }
 
-          if(response_type %in% c("Poisson","PLN")){
+          if(response_type %in% c("NB","Poisson","PLN")){
             # Sampling from full conditional of Bj's
             if(ETA[[j]]$update == "scalar"){
               B = .Call("fBj_P",l,yr,ETA[[j]]$Bv,ETA[[j]]$varB,rv,ETA[[j]]$X,
@@ -2183,7 +2227,7 @@ UTME<-function(
 
         if (ETA[[j]]$model == "BL") {
 
-          if(response_type=="Poisson"){
+          if(response_type%in%c("NB","Poisson")){
             varBj=ETA[[j]]$tau2
           }else{varBj=varE*ETA[[j]]$tau2}
 
@@ -2200,7 +2244,7 @@ UTME<-function(
             }
           }
 
-          if(response_type == "Poisson"){
+          if(response_type%in%c("NB","Poisson")){
             # Sampling from full conditional of Bj's
             if(ETA[[j]]$update == "scalar"){
               B = .Call("fBj_P",l,yr,ETA[[j]]$Bv,varBj,rv,ETA[[j]]$X,
@@ -2228,7 +2272,7 @@ UTME<-function(
 
           ETA[[j]]$Bv = B[[1]]
           rv = B[[2]]
-          if(response_type=="Poisson"){
+          if(response_type%in%c("NB","Poisson")){
             nu = sqrt(ETA[[j]]$lambda^2 / ETA[[j]]$Bv^2)
           }
           else{nu = sqrt(varE * ETA[[j]]$lambda^2 / ETA[[j]]$Bv^2)}
@@ -2283,7 +2327,7 @@ UTME<-function(
             }
           }
 
-          if(response_type %in% c("Poisson","PLN")){
+          if(response_type %in% c("NB","Poisson","PLN")){
             # Sampling from full conditional of Ui's
             if(ETA[[j]]$update == "scalar"){
               res = .Call("fBj_P",l,yr,ETA[[j]]$uStar,varU,rv,ETA[[j]]$V,
@@ -2319,7 +2363,7 @@ UTME<-function(
                          n,ETA[[j]]$p,ntraits,PACKAGE="BGLM")
             }
 
-            if(response_type%in%c("Poisson","PLN")){
+            if(response_type%in%c("NB","Poisson","PLN")){
               # Sampling from full conditional of Bj's
               B1 = .Call("fBj_P_mtme",as.matrix(l),as.matrix(yr),ETA[[j]]$Bv,
                          ETA[[j]]$Cov$SigmaBInv,as.matrix(rv),ETA[[j]]$X,
@@ -2398,7 +2442,7 @@ UTME<-function(
                          PACKAGE="BGLM")
             }
 
-            if(response_type%in%c("Poisson","PLN")){
+            if(response_type%in%c("NB","Poisson","PLN")){
               # Sampling from full conditional of Bj's
               B2 = .Call("fBj_P_mtme",as.matrix(l),as.matrix(yr),ETA[[j]]$GxExT$Bv,
                          ETA[[j]]$Cov$SigmaBInv,as.matrix(rv),ETA[[j]]$GxExT$X,
@@ -2507,6 +2551,20 @@ UTME<-function(
       }
     }
 
+	if(response_type == "NB"){
+      rvNB = rv + log(r)
+      y_tr = exp(rvNB)
+	  P = y_tr/(r+y_tr)
+      if(nNa>0){
+        yStar[whichNa] = rnbinom(n=nNa,size=r,prob=P[whichNa])
+
+        #Save the posterior samples
+        write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
+        write(y_tr[whichNa],ncolumns = nNa,file = f_mu,append = TRUE)
+        write(r[whichNa],ncolumns = nNa,file = f_r,append = TRUE)
+      }
+    }
+	  
     if(response_type == "Poisson"){
       rvPois = rv + log(r)
       y_tr = exp(rvPois)
@@ -2559,6 +2617,19 @@ UTME<-function(
     # loglik
     loglik<-fllp_fun()
 
+	if(response_type == "NB"){
+	  rv = rv + log(r)
+	  pi = y_tr/(r+y_tr)
+      shape <- a0 + sum(L)
+      rate  <- b0 - sum(log(1 - pi))
+      r <- rgamma(1,shape = shape,scale = 1/rate)
+	  L <- sapply(y, CRT_function, r = r)
+      y_r = yStar+r
+      yr = (yStar - r) / 2
+      Syr = sum(yStar-r)
+      rv = rv - log(r)
+    }
+	  
     if(response_type == "Poisson"){
       rv = rv + log(r)
       Lambda = exp(rv)
@@ -2747,7 +2818,7 @@ UTME<-function(
         post_logLik = (loglik + (nk - 1) * post_logLik) / nk
         post_logLik2 = (loglik^2 + (nk - 1) * post_logLik2) / nk
 
-        if(response_type %in% c("Poisson","PLN")){
+        if(response_type %in% c("NB","Poisson","PLN")){
           post_r = (r + (nk - 1) * post_r) / nk
           post_r2 = (r^2 + (nk - 1) * post_r2) / nk
         }
@@ -2761,6 +2832,12 @@ UTME<-function(
           rv_mean = ( rv + (nk - 1) * rv_mean ) / nk
         }
 
+		if(response_type == "NB"){
+          y_pred = ( y_tr + (nk - 1) * y_pred ) / nk
+          y_pred2 = ( y_tr^2 + (nk - 1) * y_pred2 ) / nk
+          rv_mean = ( rvNB + (nk - 1) * rv_mean ) / nk
+        }
+		  
         if(response_type == "Poisson"){
           y_pred = ( y_tr + (nk - 1) * y_pred ) / nk
           y_pred2 = ( y_tr^2 + (nk - 1) * y_pred2 ) / nk
@@ -2794,7 +2871,7 @@ UTME<-function(
   if (nNa > 0) {
     close(f_y_posterior); f_y_posterior<-NULL
     close(f_mu); f_mu<-NULL
-    if(response_type%in%c("Poisson","PLN")){
+    if(response_type%in%c("NB","Poisson","PLN")){
         close(f_r); f_r<-NULL
     }
   }
@@ -2854,6 +2931,27 @@ UTME<-function(
     SD.varE = sqrt(post_varE2 - post_varE^2)
     fit$varE = post_varE
     fit$SD.varE = SD.varE
+  }
+  if(response_type == "NB"){
+    fit$logLikAtPostMean = fllp_NB(rv=rv_mean[obs_idx]-log(post_r),
+                                  y=y[obs_idx],r=post_r[obs_idx])
+    fit$pD = -2 * (post_logLik - fit$logLikAtPostMean)
+    fit$DIC = fit$pD - 2 * post_logLik
+    fit$y_train = as.vector(y_pred[obs_idx])
+    fit$SD.y_train = as.vector(sqrt(y_pred2[obs_idx] - y_pred[obs_idx]^2))
+    if(nNa == 0){
+      names(fit$y_train) = rowNames
+      names(fit$SD.y_train) = rowNames
+    }else{
+      names(fit$y_train) = rowNames[obs_idx]
+      names(fit$SD.y_train) = rowNames[obs_idx]
+      fit$y_test = as.vector(y_pred[!obs_idx])
+      fit$SD.y_test = as.vector(sqrt(y_pred2[!obs_idx] - y_pred[!obs_idx]^2))
+      names(fit$y_test) = rowNames[!obs_idx]
+      names(fit$SD.y_test) = rowNames[!obs_idx]
+    }
+    fit$r = post_r
+    fit$SD.r = sqrt(post_r2 - post_r^2)
   }
   if(response_type == "Poisson"){
     fit$logLikAtPostMean = fllp_P(rv=rv_mean[obs_idx]-log(post_r[obs_idx]),
@@ -2984,7 +3082,7 @@ UTME<-function(
           ETA[[i]]$uStar = ETA[[i]]$post_Bv
           ETA[[i]]$SD.uStar = sqrt(ETA[[i]]$post_Bv2 - ETA[[i]]$post_Bv^2)
         }
-        if(!(response_type%in%c("Poisson","PLN"))){
+        if(!(response_type%in%c("NB","Poisson","PLN"))){
           tmp = which(names(ETA[[i]]) %in% c("Bv","post_Bv","post_Bv2","X","x2",
                                              "X_train","p","eigenvals_GT",
                                              "eigenvecs_GT","eigenvals_EG",
@@ -3163,8 +3261,8 @@ MTME<-function(
   }
 
   # Response type validation
-  if (!(response_type %in% c("DLN","Poisson","PLN","gaussian"))){
-    stop("Only DLN,Poisson,PLN,or gaussian responses are allowed
+  if (!(response_type %in% c("DLN","NB","Poisson","PLN","gaussian"))){
+    stop("Only DLN, NB, Poisson, PLN, or gaussian responses are allowed
            (note: evaluation is case sensitive)")
   }
 
@@ -3214,7 +3312,7 @@ MTME<-function(
   if(response_type == "DLN"){
     Sy<-cov(log(y+1),use = "pairwise.complete.obs")
   }
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     aux<-colMeans(log(y+1),na.rm=TRUE)
     Sy<-outer(sqrt(aux),sqrt(aux))
     if(!matrixcalc::is.positive.definite(Sy)){
@@ -3283,7 +3381,7 @@ MTME<-function(
   # Priors
   #-----------------------------------------------------------------------------
 
-  if(!(response_type == "Poisson")){
+  if(!(response_type%in%c("NB","Poisson"))){
     resCov<-setResCov(n=n,resCov=resCov,ntraits=ntraits,Sy=Sy,R2=R2,saveAt=saveAt)
     if(response_type == "PLN"){
       resCov<-setResCov(n=n,resCov=resCov,ntraits=ntraits,Sy=2*Sy,R2=R2,saveAt=saveAt)
@@ -3333,6 +3431,17 @@ MTME<-function(
     cte = - (nObs * ntraits)/2 * log(2 * pi)
     rv = yStar - matrix(0,nrow = n,ncol = ntraits)
   }
+  if(response_type == "NB"){
+	a0 <- 0.01; b0 <- 0.01
+    L <- matrix(0,nrow = n,ncol = ntraits)
+    r <- rgamma(ntraits, shape = a0, scale = 1/b0)
+    y_r = yStar+r
+    yr = (yStar - r) / 2
+    Syr = colSums(yStar-r)
+    post_r = matrix(0,nrow = n,ncol = ntraits)
+    post_r2 = matrix(0,nrow = n,ncol = ntraits)
+    rv = matrix(0,nrow = n,ncol = ntraits) - log(r)
+  }
   if(response_type == "Poisson"){
     r = (yStar+1) * 10^(rcontrol)
     y_r = yStar+r
@@ -3375,6 +3484,7 @@ MTME<-function(
                                               SigmaEInv = resCov$SigmaEInv,ay = ay,
                                               by = by,type = resCov$type,Iters_latent = Iters_latent,
                                               Burn_latent = Burn_latent,Thin_latent = Thin_latent),
+				   NB = function(...) wmulti(y_r = y_r,n = n,ntraits = ntraits,rv = rv),
                    Poisson = function(...) wmulti(y_r = y_r,n = n,ntraits = ntraits,rv = rv),
                    PLN = function(...) wmulti(y_r = y_r,n = n,ntraits = ntraits,rv = rv)
   )
@@ -3382,6 +3492,7 @@ MTME<-function(
   fB0_fun<-switch(response_type,
                     DLN = function(...) fB0_DLN_multi(priorSigma0Inv=priorSigma0Inv,
                                                       SigmaEInv=resCov$SigmaEInv,rv=rv,n=n),
+				    NB = function(...) fB0_P_multi(l=l,Syr=Syr,priorSigma0Inv=priorSigma0Inv,rv=rv),
                     Poisson = function(...) fB0_P_multi(l=l,Syr=Syr,priorSigma0Inv=priorSigma0Inv,rv=rv),
                     PLN = function(...) fB0_P_multi(l=l,Syr=Syr,priorSigma0Inv=priorSigma0Inv,rv=rv),
                     gaussian = function(...) fB0_G_multi(priorSigma0Inv=priorSigma0Inv,
@@ -3421,7 +3532,7 @@ MTME<-function(
                       resCov$SigmaEInv,rv,ETA[[j]]$X,ETA[[j]]$x2,
                       n,ETA[[j]]$p,ntraits,PACKAGE="BGLM")
           }
-          if(response_type%in%c("Poisson","PLN")){
+          if(response_type%in%c("NB","Poisson","PLN")){
             # Sampling from full conditional of Bj's
             B = .Call("fBj_P_mtme",l,yr,ETA[[j]]$Bv,ETA[[j]]$Cov$SigmaBInv,rv,
                       ETA[[j]]$X,ETA[[j]]$X2,ETA[[j]]$p,ntraits,n,PACKAGE="BGLM")
@@ -3437,7 +3548,7 @@ MTME<-function(
                       resCov$SigmaEInv,rv,ETA[[j]]$X,ETA[[j]]$x2,n,ETA[[j]]$p,
                       ntraits,PACKAGE="BGLM")
           }
-          if(response_type%in%c("Poisson","PLN")){
+          if(response_type%in%c("NB","Poisson","PLN")){
             # Sampling from full conditional of Bj's
             B = .Call("fBj_P_mtme",l,yr,ETA[[j]]$Bv,ETA[[j]]$Cov$SigmaBInv,rv,
                       ETA[[j]]$X,ETA[[j]]$X2,ETA[[j]]$p,ntraits,n,PACKAGE="BGLM")
@@ -3499,7 +3610,7 @@ MTME<-function(
                          resCov$SigmaEInv,rv,ETA[[j]]$X,ETA[[j]]$x2,n,
                          ETA[[j]]$p,ntraits,PACKAGE="BGLM")
             }
-            if(response_type%in%c("Poisson","PLN")){
+            if(response_type%in%c("NB","Poisson","PLN")){
               # Sampling from full conditional of Bj's
               B1 = .Call("fBj_P_mtme",l,yr,ETA[[j]]$Bv,ETA[[j]]$Cov$SigmaBInv,
                          rv,ETA[[j]]$X,ETA[[j]]$X2,ETA[[j]]$p,ntraits,n,
@@ -3611,7 +3722,7 @@ MTME<-function(
                          resCov$SigmaEInv,rv,ETA[[j]]$GxExT$X,ETA[[j]]$GxExT$x2,
                          n,ETA[[j]]$GxExT$p,ntraits,PACKAGE="BGLM")
             }
-            if(response_type%in%c("Poisson","PLN")){
+            if(response_type%in%c("NB","Poisson","PLN")){
               # Sampling from full conditional of Bj's
               B2 = .Call("fBj_P_mtme",l,yr,ETA[[j]]$GxExT$Bv,ETA[[j]]$Cov$SigmaBInv,
                          rv,ETA[[j]]$GxExT$X,ETA[[j]]$GxExT$X2,ETA[[j]]$GxExT$p,
@@ -3692,7 +3803,7 @@ MTME<-function(
             ETA[[j]]$GxExT$x2 = as.vector(colSums(ETA[[j]]$GxExT$X^2))
             ETA[[j]]$GxExT$p<-ncol(ETA[[j]]$GxExT$X)
 
-            if(response_type%in%c("Poisson","PLN")){ETA[[j]]$GxExT$X2<-ETA[[j]]$GxExT$X^2}
+            if(response_type%in%c("NB","Poisson","PLN")){ETA[[j]]$GxExT$X2<-ETA[[j]]$GxExT$X^2}
 
             #rv<-rv - ETA[[j]]$GxExT$X %*% Bv_new
             rv<-.Call("fXb_multi_prod",ETA[[j]]$GxExT$X,Bv_new,rv,-1.0,
@@ -3771,6 +3882,18 @@ MTME<-function(
                               U_qmc)
     }
 
+	if(response_type == "NB"){
+      rvNB = rv + log(r)
+      y_tr = exp(rvNB)
+	  P = y_tr/(r+y_tr)
+      if(nNa>0){
+        rp = y_tr[!NoWhichNa,]
+		size_vec <- rep(r, each = nNa)
+        yStar[!NoWhichNa,] = matrix(rnbinom(n=nNa*ntraits,size=size_vec,prob=as.vector(P),nrow=nNa,ncol=ntraits)
+      }
+      loglik = fllp_NB_multi(rv=rv[NoWhichNa,],y=y[NoWhichNa,],r=r,ntraits = ntraits)
+    }
+	  
     if(response_type == "Poisson"){
       rvPois = rv + log(r)
       y_tr = exp(rvPois)
@@ -3801,6 +3924,23 @@ MTME<-function(
       loglik = cte + partial_fllp_G(rv = rv[NoWhichNa,],SigmaE = resCov$SigmaE)
     }
 
+    if(response_type == "NB"){
+      rv = rv + log(r)
+      for(t in 1:T){  
+      	shape <- a0 + sum(L[, t])
+    
+    	rate <- b0 - sum(log(1 - Pi[, t]))
+    
+    	r[t] <- rgamma(1, shape = shape, scale = 1/rate)
+    
+    	L[, t] <- sapply(y[, t], CRT_function, r = r[t])
+ 	  }
+      y_r = yStar+r
+      yr = (yStar - r) / 2
+      Syr = colSums(yStar-r)
+      rv = rv - log(r)
+    }
+									
     if(response_type == "Poisson"){
       rv = rv + log(r)
       Lambda = exp(rv)
@@ -3991,7 +4131,7 @@ MTME<-function(
         post_logLik = (loglik + (nk - 1) * post_logLik) / nk
         post_logLik2 = (loglik^2 + (nk - 1) * post_logLik2) / nk
 
-        if(response_type%in%c("Poisson","PLN")){
+        if(response_type%in%c("NB","Poisson","PLN")){
           post_r = (r + (nk - 1) * post_r) / nk
           post_r2 = (r^2 + (nk - 1) * post_r2) / nk
         }
@@ -4005,6 +4145,12 @@ MTME<-function(
           rv_mean = ( rv + (nk - 1) * rv_mean ) / nk
         }
 
+		if(response_type == "NB"){
+          y_pred = ( y_tr + (nk - 1) * y_pred ) / nk
+          y_pred2 = ( y_tr^2 + (nk - 1) * y_pred2 ) / nk
+          rv_mean = ( rvNB + (nk - 1) * rv_mean ) / nk
+        }
+		  
         if(response_type == "Poisson"){
           y_pred = ( y_tr + (nk - 1) * y_pred ) / nk
           y_pred2 = ( y_tr^2 + (nk - 1) * y_pred2 ) / nk
@@ -4101,6 +4247,29 @@ MTME<-function(
     }
   }
 
+  if(response_type == "NB"){
+    fit$logLikAtPostMean = fllp_NB_multi(rv=rv_mean[NoWhichNa,]-log(post_r),
+                                        y=y[NoWhichNa,],r=post_r,ntraits=ntraits)
+    fit$pD = -2 * (post_logLik - fit$logLikAtPostMean)
+    fit$DIC = fit$pD - 2 * post_logLik
+    fit$y_train = y_pred[NoWhichNa,]
+    fit$SD.y_train = sqrt(y_pred2[NoWhichNa,] - y_pred[NoWhichNa,]^2)
+    if(nNa==0){
+      rownames(fit$y_train) = rowNames; colnames(fit$y_train) = colNames
+      rownames(fit$SD.y_train) = rowNames; colnames(fit$SD.y_train) = colNames
+    }
+    else{
+      rownames(fit$y_train) = rowNames[NoWhichNa]; colnames(fit$y_train) = colNames
+      rownames(fit$SD.y_train) = rowNames[NoWhichNa]; colnames(fit$SD.y_train) = colNames
+      fit$y_test = y_pred[!NoWhichNa,]
+      fit$SD.y_test = sqrt(y_pred2[!NoWhichNa,] - y_pred[!NoWhichNa,]^2)
+      rownames(fit$y_test) = rowNames[!NoWhichNa]; colnames(fit$y_test) = colNames
+      rownames(fit$SD.y_test) = rowNames[!NoWhichNa]; colnames(fit$SD.y_test) = colNames
+    }
+    fit$r = post_r
+    fit$SD.r = sqrt(post_r2 - post_r^2)
+  }
+									
   if(response_type == "Poisson"){
     fit$logLikAtPostMean = fllp_P_multi(rv=rv_mean[NoWhichNa,]-log(post_r[NoWhichNa,]),
                                         y=y[NoWhichNa,],r=post_r[NoWhichNa,],ntraits=ntraits)
@@ -4203,7 +4372,7 @@ MTME<-function(
       if (ETA[[i]]$model %in% c("FIXED","BRR")) {
         ETA[[i]]$Bv = ETA[[i]]$post_Bv
         ETA[[i]]$SD.Bv = sqrt(ETA[[i]]$post_Bv2 - ETA[[i]]$post_Bv^2)
-        if(!(response_type%in%c("Poisson","PLN"))){
+        if(!(response_type%in%c("NB","Poisson","PLN"))){
           tmp = which(names(ETA[[i]]) %in% c("post_Bv","post_Bv2","X","x2"))
           ETA[[i]] = ETA[[i]][-tmp]
         }
@@ -4217,7 +4386,7 @@ MTME<-function(
         ETA[[i]]$u = ETA[[i]]$X%*%ETA[[i]]$post_Bv
         ETA[[i]]$uStar = ETA[[i]]$post_Bv
         ETA[[i]]$SD.uStar = sqrt(ETA[[i]]$post_Bv2 - ETA[[i]]$post_Bv^2)
-        if(!(response_type%in%c("Poisson","PLN"))){
+        if(!(response_type%in%c("NB","Poisson","PLN"))){
           tmp = which(names(ETA[[i]]) %in% c("Bv","post_Bv","post_Bv2","X","x2",
                                              "X_train","p"))
           ETA[[i]] = ETA[[i]][-tmp]
@@ -4234,7 +4403,7 @@ MTME<-function(
           ETA[[i]]$uStar = ETA[[i]]$post_Bv
           ETA[[i]]$SD.uStar = sqrt(ETA[[i]]$post_Bv2 - ETA[[i]]$post_Bv^2)
         }
-        if(!(response_type%in%c("Poisson","PLN"))){
+        if(!(response_type%in%c("NB","Poisson","PLN"))){
           tmp = which(names(ETA[[i]]) %in% c("Bv","post_Bv","post_Bv2","X","x2",
                                              "X_train","p","eigenvals_GT",
                                              "eigenvecs_GT","eigenvals_EG",
@@ -4256,7 +4425,7 @@ MTME<-function(
           ETA[[i]]$GxExT$u = ETA[[i]]$GxExT$X%*%ETA[[i]]$GxExT$post_Bv
           ETA[[i]]$GxExT$uStar = ETA[[i]]$GxExT$post_Bv
           ETA[[i]]$GxExT$SD.uStar = sqrt(ETA[[i]]$GxExT$post_Bv2 - ETA[[i]]$GxExT$post_Bv^2)
-          if(!(response_type%in%c("Poisson","PLN"))){
+          if(!(response_type%in%c("NB","Poisson","PLN"))){
             tmp = which(names(ETA[[i]]$GxExT) %in% c("Bv","post_Bv","post_Bv2","X","x2",
                                                      "X_train","p","eigenvals_GT",
                                                      "eigenvecs_GT","eigenvals_EG",
