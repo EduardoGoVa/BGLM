@@ -72,7 +72,7 @@ setLT.Fixed<-function(LT,whichNa,y,n,response_type,saveAt,intercept,i)
       LT$tXX = crossprod(LT$X)
     }
   }
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     x2 = apply(LT$X,2L,function(x) sum(x^2))
     if(LT$update == "scalar"){
       LT$X2 = apply(LT$X,2L,function(x) x^2)
@@ -145,7 +145,7 @@ setLT.BRR<-function(LT,whichNa,y,n,R2,thin,nIter,burnIn,nLT,response_type,
       LT$tXX = crossprod(LT$X)
     }
   }
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     x2 = apply(LT$X,2L,function(x) sum(x^2))
     if(LT$update == "scalar"){
       LT$X2 = apply(LT$X,2L,function(x) x^2)
@@ -175,7 +175,7 @@ setLT.BRR<-function(LT,whichNa,y,n,R2,thin,nIter,burnIn,nLT,response_type,
       LT$priorSB = (LT$priorvB+2)*(LT$R2)*var(log(y+1),na.rm=TRUE)/(MSx)
     }
   }
-  if(response_type %in% c("Poisson","PLN")){
+  if(response_type %in% c("NB","Poisson","PLN")){
     if (is.null(LT$priorSB)){
       LT$priorSB = (LT$priorvB+2)*(LT$R2)*mean(log(y+1),na.rm=TRUE)/(MSx/2)
     }
@@ -239,7 +239,7 @@ setLT.BayesA<-function(LT,whichNa,y,n,R2,thin,nIter,burnIn,nLT,response_type,
       LT$tXX = crossprod(LT$X)
     }
   }
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     x2 = apply(LT$X,2L,function(x) sum(x^2))
     if(LT$update == "scalar"){
       LT$X2 = apply(LT$X,2L,function(x) x^2)
@@ -271,7 +271,7 @@ setLT.BayesA<-function(LT,whichNa,y,n,R2,thin,nIter,burnIn,nLT,response_type,
       LT$SB = LT$priorSB
     }
   }
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     if (is.null(LT$priorSB)){
       LT$priorSB = (LT$priorvB+2)*(LT$R2)*mean(log(y+1),na.rm=TRUE)/(MSx/2)
       LT$SB = LT$priorSB
@@ -347,7 +347,7 @@ setLT.BL<-function(LT,whichNa,y,n,R2,thin,nIter,burnIn,nLT,response_type,
     }
   }
 
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     x2 = apply(LT$X,2L,function(x) sum(x^2))
     if(LT$update == "scalar"){
       LT$X2 = apply(LT$X,2L,function(x) x^2)
@@ -412,7 +412,7 @@ setLT.BL<-function(LT,whichNa,y,n,R2,thin,nIter,burnIn,nLT,response_type,
   LT$Bv = rep(0,LT$p)
   LT$post_Bv = rep(0,LT$p)
   LT$post_Bv2 = rep(0,LT$p)
-  if(response_type%in%c("Poisson","PLN")){tmp = ((mean(log(y+1),na.rm=TRUE) * R2/nLT)/(MSx))}
+  if(response_type%in%c("NB","Poisson","PLN")){tmp = ((mean(log(y+1),na.rm=TRUE) * R2/nLT)/(MSx))}
   if(response_type == "DLN"){tmp = ((var(log(y+1),na.rm=TRUE) * R2/nLT)/(MSx))}
   if(response_type == "gaussian"){tmp = ((var(y,na.rm=TRUE) * R2/nLT)/(MSx))}
   LT$tau2 = rep(tmp,LT$p)
@@ -484,7 +484,7 @@ setLT.RKHS=function(LT,whichNa,y,n,R2,nLT,response_type,saveAt,i)
     }
   }
 
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     v2 = rep(1,LT$levelsU)
     if(LT$update == "scalar"){
       LT$V2 = apply(LT$V,2L,function(x) x^2)
@@ -515,7 +515,7 @@ setLT.RKHS=function(LT,whichNa,y,n,R2,nLT,response_type,saveAt,i)
     if(response_type == "DLN"){
       LT$priorSU = (LT$priorvU+2)*(LT$R2)*var(log(y+1),na.rm=TRUE)/(mean(LT$d))
     }
-    if(response_type %in% c("Poisson","PLN")){
+    if(response_type %in% c("NB","Poisson","PLN")){
       LT$priorSU = (LT$priorvU+2)*(LT$R2)*mean(log(y+1),na.rm=TRUE)/((mean(LT$d))/2)
     }
 
@@ -950,7 +950,7 @@ setLT.Fixed_mt<-function(LT,n,ntraits,i,saveAt,response_type,NoWhichNa,nRow)
   if (qr(LT$X)$rank < ncol(LT$X))
     stop("X is rank deficient")
 
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     LT$X2 = apply(LT$X,2L,function(x) x^2)
   }
   if(response_type%in%c("DLN","gaussian")){
@@ -1008,7 +1008,7 @@ setLT.BRR_mt<-function(LT,n,ntraits,i,Sy,nLT,R2,saveAt,response_type,NoWhichNa,n
     LT$x2 = apply(LT$X,2L,function(x) sum(x^2))
     MSx<-sum(LT$x2)/n
   }
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     LT$X2 = apply(LT$X,2L,function(x) x^2)
     LT$x2 = apply(LT$X,2L,function(x) sum(x^2))
     MSx<-sum(LT$x2)/(2*n)
@@ -1221,7 +1221,7 @@ setLT.MTME<-function(LT,n,ntraits,i,Sy,nLT,R2,saveAt,response_type,NoWhichNa)
   if(response_type%in%c("DLN","gaussian")){
     LT$x2 = apply(LT$X,2L,function(x) sum(x^2))
   }
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     LT$X2 = apply(LT$X,2L,function(x) x^2)
     LT$x2 = apply(LT$X,2L,function(x) sum(x^2))
   }
@@ -1242,7 +1242,7 @@ setCov.MTME<-function(LT,n,nEnvs,i,Sy,nLT,R2,saveAt,response_type,NoWhichNa)
     x2 = apply(LT$X,2L,function(x) sum(x^2))
     MSx<-sum(x2)/n
   }
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     x2 = apply(LT$X,2L,function(x) sum(x^2))
     MSx<-sum(x2)/(2*n)
   }
@@ -1297,7 +1297,7 @@ setCov.MTME_GT<-function(LT,n,ntraits,i,Sy,nLT,R2,saveAt,response_type,NoWhichNa
     x2 = apply(LT$X,2L,function(x) sum(x^2))
     MSx<-sum(x2)/n
   }
-  if(response_type%in%c("Poisson","PLN")){
+  if(response_type%in%c("NB","Poisson","PLN")){
     x2 = apply(LT$X,2L,function(x) sum(x^2))
     MSx<-sum(x2)/(2*n)
   }
@@ -1425,7 +1425,7 @@ setLT.RKHS_mtme<-function(LT,n,ntraits,i,y,Sy,nLT,R2,saveAt,response_type,NoWhic
       Sy_Env<-var(log(y_Env+1),na.rm = T)
       if(any(is.na(Sy_Env))){Sy_Env=diag(1,LT$nEnv)}
     }
-    if(response_type%in%c("Poisson","PLN")){
+    if(response_type%in%c("NB","Poisson","PLN")){
       aux<-colMeans(log(y_Env+1),na.rm=T)
       Sy_Env<-outer(sqrt(aux),sqrt(aux))
       if(any(is.na(Sy_Env))){Sy_Env=diag(1,LT$nEnv)}
@@ -1503,7 +1503,7 @@ setLT.RKHS_mtme<-function(LT,n,ntraits,i,y,Sy,nLT,R2,saveAt,response_type,NoWhic
       Sy_Env<-var(log(y_Env+1),na.rm = T)
       if(any(is.na(Sy_Env))){Sy_Env=diag(1,LT$nEnv)}
     }
-    if(response_type%in%c("Poisson","PLN")){
+    if(response_type%in%c("NB","Poisson","PLN")){
       aux<-colMeans(log(y_Env+1),na.rm=T)
       Sy_Env<-outer(sqrt(aux),sqrt(aux))
       if(any(is.na(Sy_Env))){Sy_Env=diag(1,LT$nEnv)}
@@ -1768,7 +1768,7 @@ fllp_PLN_multi_R<-function(y=NULL,n=NULL,ntraits=NULL,logy_factorial=NULL,
 #' @param ETA List used to specify the linear predictor.
 #' By default it is set to NULL, in which case only the intercept is included.
 #' @param y Response vector. Can contain NA values.
-#' @param response_type Type of response ("DLN","gaussian","Poisson","PLN").
+#' @param response_type Type of response ("DLN","gaussian","NB","Poisson","PLN").
 #' For DLN, Poisson or PLN responses, the argument `y` must contain integer values,
 #' while for gaussian responses any type of numeric value can be accepted.
 #' @param nIter Number of MCMC iterations.
@@ -2522,7 +2522,7 @@ UTME<-function(
             ETA[[j]]$GxExT$x2 = as.vector(colSums(ETA[[j]]$GxExT$X^2))
             ETA[[j]]$GxExT$p<-ncol(ETA[[j]]$GxExT$X)
 
-            if(response_type%in%c("Poisson","PLN")){ETA[[j]]$GxExT$X2<-ETA[[j]]$GxExT$X^2}
+            if(response_type%in%c("NB","Poisson","PLN")){ETA[[j]]$GxExT$X2<-ETA[[j]]$GxExT$X^2}
 
             rv<-.Call("fXb_multi_prod",ETA[[j]]$GxExT$X,Bv_new,rv,-1.0,
                       PACKAGE="BGLM")
@@ -3044,7 +3044,7 @@ UTME<-function(
                                              "tXX","nblocks"))
           ETA[[i]] = ETA[[i]][-tmp]
         }
-        if(response_type %in% c("Poisson","PLN")){
+        if(response_type %in% c("NB","Poisson","PLN")){
           tmp = which(names(ETA[[i]]) %in% c("post_Bv","post_Bv2","X","X2","tX",
                                              "tXX","nblocks"))
           ETA[[i]] = ETA[[i]][-tmp]
@@ -3105,7 +3105,7 @@ UTME<-function(
           ETA[[i]]$GxExT$u = ETA[[i]]$GxExT$X%*%ETA[[i]]$GxExT$post_Bv
           ETA[[i]]$GxExT$uStar = ETA[[i]]$GxExT$post_Bv
           ETA[[i]]$GxExT$SD.uStar = sqrt(ETA[[i]]$GxExT$post_Bv2 - ETA[[i]]$GxExT$post_Bv^2)
-          if(!(response_type%in%c("Poisson","PLN"))){
+          if(!(response_type%in%c("NB","Poisson","PLN"))){
             tmp = which(names(ETA[[i]]$GxExT) %in% c("Bv","post_Bv","post_Bv2","X","x2",
                                                      "X_train","p","eigenvals_GT",
                                                      "eigenvecs_GT","eigenvals_EG",
@@ -3196,7 +3196,7 @@ UTME<-function(
 #' @param ETA List used to specify the linear predictor.
 #' By default it is set to NULL, in which case only the intercept is included.
 #' @param y Response vector. Can contain NA values.
-#' @param response_type Type of response ("DLN","gaussian","Poisson","PLN").
+#' @param response_type Type of response ("DLN","gaussian","NB","Poisson","PLN").
 #' For DLN, Poisson or PLN responses, the argument `y` must contain integer values,
 #' while for gaussian responses any type of numeric value can be accepted.
 #' @param nIter Number of MCMC iterations.
