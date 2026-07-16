@@ -1699,7 +1699,7 @@ fllp_DLN_multi<-function(y = NULL,n = NULL,ntraits = NULL,a = NULL,b = NULL,
 fllp_NB<-function(rv=NULL,y=NULL,r=NULL)
 {
   mu = exp(rv + log(r)) 
-  P = mu/(r+mu)
+  P = r/(r+mu)
   return(sum(dnbinom(y,size=r,prob=P,log=TRUE)))
 }
 
@@ -1707,7 +1707,7 @@ fllp_NB<-function(rv=NULL,y=NULL,r=NULL)
 fllp_NB_multi<-function(rv=NULL,y=NULL,r=NULL,ntraits=NULL)
 {
   mu = exp(rv + log(r))
-  P = mu/(r+mu)
+  P = r/(r+mu)
   loglik_total = 0
   for (i in 1:ntraits) {
     loglik_total = loglik_total + sum(dnbinom(y[,i],r[i],P[,i],log=TRUE))
@@ -1813,8 +1813,8 @@ UTME<-function(
     rcontrol=1.15,
     type_prediction="mean",
     intercept=list(TRUE,0),
-	a0<-0.01,
-	b0<-0.01,
+	a0=0.01,
+	b0=0.01,
     verbose=F,
     saveAt=""
     ){
@@ -2555,7 +2555,7 @@ UTME<-function(
 	if(response_type == "NB"){
       rvNB = rv + log(r)
       y_tr = exp(rvNB)
-	  P = y_tr/(r+y_tr)
+	  P = r/(r+y_tr)
       if(nNa>0){
         yStar[whichNa] = rnbinom(n=nNa,size=r,prob=P[whichNa])
 
@@ -2624,7 +2624,7 @@ UTME<-function(
       shape <- a0 + sum(L)
       rate  <- b0 - sum(log(1 - pi))
       r <- rgamma(1,shape = shape,scale = 1/rate)
-	  L <- sapply(y, CRT_function, r = r)
+	  L <- sapply(yStar, CRT_function, r = r)
       y_r = yStar+r
       yr = (yStar - r) / 2
       Syr = sum(yStar-r)
@@ -3888,7 +3888,7 @@ MTME<-function(
 	if(response_type == "NB"){
       rvNB = rv + log(r)
       y_tr = exp(rvNB)
-	  P = y_tr/(r+y_tr)
+	  P = r/(r+y_tr)
       if(nNa>0){
         rp = y_tr[!NoWhichNa,]
 		size_vec <- rep(r, each = nNa)
@@ -3937,7 +3937,7 @@ MTME<-function(
     
     	r[t] <- rgamma(1, shape = shape, scale = 1/rate)
     
-    	L[, t] <- sapply(y[, t], CRT_function, r = r[t])
+    	L[, t] <- sapply(yStar[, t], CRT_function, r = r[t])
  	  }
       y_r = yStar+r
       yr = (yStar - r) / 2
