@@ -1790,6 +1790,10 @@ fllp_PLN_multi_R<-function(y=NULL,n=NULL,ntraits=NULL,logy_factorial=NULL,
 #' linear predictor; in case you specify FALSE, the second argument assigns the
 #' position, according to the covariates order, where you want to include it.
 #' The default values are list(TRUE,0).
+#' @param a0 Shape parameter for the Gamma prior distribution of the dispersion parameter r
+#' in the BN model, r ~ Gamma(shape = a0, rate = b0).
+#' @param b0 Rate parameter for the Gamma prior distribution of the dispersion parameter r
+#' in the BN model, r ~ Gamma(shape = a0, rate = b0).
 #' @param verbose Used to show (TRUE) or not (FALSE) the progress of iterations
 #' in the Gibbs Sampler; default is FALSE
 #' @param saveAt Used to indicate UTME where to store the samples and to provide
@@ -2037,8 +2041,8 @@ UTME<-function(
     y_r = yStar+r
     yr = (yStar - r) / 2
     Syr = sum(yStar-r)
-    post_r = rep(0,n)
-    post_r2 = rep(0,n)
+    post_r = 0
+    post_r2 = 0
     rv = rep(0,n) - log(r)
   }
   if(response_type == "Poisson"){
@@ -2935,7 +2939,7 @@ UTME<-function(
   }
   if(response_type == "NB"){
     fit$logLikAtPostMean = fllp_NB(rv=rv_mean[obs_idx]-log(post_r),
-                                  y=y[obs_idx],r=post_r[obs_idx])
+                                  y=y[obs_idx],r=post_r)
     fit$pD = -2 * (post_logLik - fit$logLikAtPostMean)
     fit$DIC = fit$pD - 2 * post_logLik
     fit$y_train = as.vector(y_pred[obs_idx])
@@ -3225,6 +3229,10 @@ UTME<-function(
 #' used for the approximation of the log-likelihood of the Multivariate DLN model.
 #' @param intercept_mt Used to include (TRUE) or not (FALSE) the intercept in
 #' the linear predictor; default is TRUE.
+#' @param a0 Shape parameter for the Gamma prior distribution of the dispersion parameter r
+#' in the BN model, r ~ Gamma(shape = a0, rate = b0).
+#' @param b0 Rate parameter for the Gamma prior distribution of the dispersion parameter r
+#' in the BN model, r ~ Gamma(shape = a0, rate = b0).
 #' @param verbose Used to show (TRUE) or not (FALSE) the progress of iterations
 #' in the Gibbs Sampler; default is FALSE
 #' @param saveAt Used to indicate UTME where to store the samples and to provide
@@ -3438,12 +3446,13 @@ MTME<-function(
   if(response_type == "NB"){
     L <- matrix(0,nrow = n,ncol = ntraits)
     r <- rgamma(ntraits, shape = a0, scale = 1/b0)
-    y_r = yStar+r
-    yr = (yStar - r) / 2
-    Syr = colSums(yStar-r)
-    post_r = matrix(0,nrow = n,ncol = ntraits)
-    post_r2 = matrix(0,nrow = n,ncol = ntraits)
-    rv = matrix(0,nrow = n,ncol = ntraits) - log(r)
+	y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
+    yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
+    yr = (yminusr) / 2
+    Syr = colSums(yminusr)
+    post_r = rep(0,ntraits)
+    post_r2 = rep(0,ntraits)
+    rv = sweep(x=U,MARGIN=2,STATS=log(r),FUN="-")
   }
   if(response_type == "Poisson"){
     r = (yStar+1) * 10^(rcontrol)
@@ -3890,7 +3899,6 @@ MTME<-function(
       y_tr = exp(rvNB)
 	  P = r/(r+y_tr)
       if(nNa>0){
-        rp = y_tr[!NoWhichNa,]
 		size_vec <- rep(r, each = nNa)
         yStar[!NoWhichNa,] = matrix(rnbinom(n=nNa*ntraits,size=size_vec,prob=as.vector(P)),nrow=nNa,ncol=ntraits)
       }
@@ -3928,7 +3936,7 @@ MTME<-function(
     }
 
     if(response_type == "NB"){
-      rv = rv + log(r)
+      rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+")
 	  Pi = r/(r+y_tr)
       for(t in 1:T){  
       	shape <- a0 + sum(L[, t])
@@ -3939,10 +3947,12 @@ MTME<-function(
     
     	L[, t] <- sapply(yStar[, t], CRT_function, r = r[t])
  	  }
-      y_r = yStar+r
-      yr = (yStar - r) / 2
-      Syr = colSums(yStar-r)
-      rv = rv - log(r)
+
+	  y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
+      yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
+      yr = (yminusr) / 2
+      Syr = colSums(yminusr)
+      rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="-")
     }
 									
     if(response_type == "Poisson"){
