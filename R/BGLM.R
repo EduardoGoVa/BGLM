@@ -1699,7 +1699,7 @@ fllp_DLN_multi<-function(y = NULL,n = NULL,ntraits = NULL,a = NULL,b = NULL,
 fllp_NB<-function(rv=NULL,y=NULL,r=NULL)
 {
   mu = exp(rv + log(r)) 
-  P = mu/(r+mu)
+  P = r/(r+mu)
   return(sum(dnbinom(y,size=r,prob=P,log=TRUE)))
 }
 
@@ -1707,7 +1707,7 @@ fllp_NB<-function(rv=NULL,y=NULL,r=NULL)
 fllp_NB_multi<-function(rv=NULL,y=NULL,r=NULL,ntraits=NULL)
 {
   mu = exp(rv + log(r))
-  P = mu/(r+mu)
+  P = r/(r+mu)
   loglik_total = 0
   for (i in 1:ntraits) {
     loglik_total = loglik_total + sum(dnbinom(y[,i],r[i],P[,i],log=TRUE))
@@ -2559,7 +2559,7 @@ UTME<-function(
 	if(response_type == "NB"){
       rvNB = rv + log(r)
       y_tr = exp(rvNB)
-	  P = y_tr/(r+y_tr)
+	  P = r/(r+y_tr)
       if(nNa>0){
         yStar[whichNa] = rnbinom(n=nNa,size=r,prob=P[whichNa])
 
@@ -3897,7 +3897,7 @@ MTME<-function(
 	if(response_type == "NB"){
       rvNB = rv + log(r)
       y_tr = exp(rvNB)
-	  P = y_tr/(r+y_tr)
+	  P = r/(r+y_tr)
       if(nNa>0){
 		size_vec <- rep(r, each = nNa)
         yStar[!NoWhichNa,] = matrix(rnbinom(n=nNa*ntraits,size=size_vec,prob=as.vector(P)),nrow=nNa,ncol=ntraits)
