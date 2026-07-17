@@ -1699,7 +1699,7 @@ fllp_DLN_multi<-function(y = NULL,n = NULL,ntraits = NULL,a = NULL,b = NULL,
 fllp_NB<-function(rv=NULL,y=NULL,r=NULL)
 {
   mu = exp(rv + log(r)) 
-  P = r/(r+mu)
+  P = mu/(r+mu)
   return(sum(dnbinom(y,size=r,prob=P,log=TRUE)))
 }
 
@@ -1707,7 +1707,7 @@ fllp_NB<-function(rv=NULL,y=NULL,r=NULL)
 fllp_NB_multi<-function(rv=NULL,y=NULL,r=NULL,ntraits=NULL)
 {
   mu = exp(rv + log(r))
-  P = r/(r+mu)
+  P = mu/(r+mu)
   loglik_total = 0
   for (i in 1:ntraits) {
     loglik_total = loglik_total + sum(dnbinom(y[,i],r[i],P[,i],log=TRUE))
@@ -2559,7 +2559,7 @@ UTME<-function(
 	if(response_type == "NB"){
       rvNB = rv + log(r)
       y_tr = exp(rvNB)
-	  P = r/(r+y_tr)
+	  P = y_tr/(r+y_tr)
       if(nNa>0){
         yStar[whichNa] = rnbinom(n=nNa,size=r,prob=P[whichNa])
 
@@ -2624,7 +2624,7 @@ UTME<-function(
 
 	if(response_type == "NB"){
 	  rv = rv + log(r)
-	  pi = r/(r+y_tr)
+	  pi = y_tr/(r+y_tr)
       shape <- a0 + sum(L)
       rate  <- b0 - sum(log(1 - pi))
       r <- rgamma(1,shape = shape,scale = 1/rate)
@@ -3897,7 +3897,7 @@ MTME<-function(
 	if(response_type == "NB"){
       rvNB = rv + log(r)
       y_tr = exp(rvNB)
-	  P = r/(r+y_tr)
+	  P = y_tr/(r+y_tr)
       if(nNa>0){
 		size_vec <- rep(r, each = nNa)
         yStar[!NoWhichNa,] = matrix(rnbinom(n=nNa*ntraits,size=size_vec,prob=as.vector(P)),nrow=nNa,ncol=ntraits)
@@ -3937,7 +3937,7 @@ MTME<-function(
 
     if(response_type == "NB"){
       rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+")
-	  Pi = r/(r+y_tr)
+	  Pi = y_tr/(r+y_tr)
       for(t in 1:T){  
       	shape <- a0 + sum(L[, t])
     
