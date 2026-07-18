@@ -2039,7 +2039,7 @@ UTME<-function(
     rv = yStar - rep(0,n)
   }
   if(response_type == "NB"){
-	h <- rgamma(1, shape = b0, scale = 1/g0)
+	h <- 0.01
 	r <- rgamma(1, shape = a0, scale = 1/h)
     L <- rep(0,n)
     y_r = yStar+r
@@ -3452,7 +3452,7 @@ MTME<-function(
     rv = yStar - matrix(0,nrow = n,ncol = ntraits)
   }
   if(response_type == "NB"){
-	h <- rgamma(ntraits, shape = b0, scale = 1/g0)
+	h <- rep(0.01,ntraits)
     r <- rgamma(ntraits, shape = a0, scale = 1/h)
 	L <- matrix(0,nrow = n,ncol = ntraits)
 	y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
