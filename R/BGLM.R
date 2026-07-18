@@ -1791,9 +1791,11 @@ fllp_PLN_multi_R<-function(y=NULL,n=NULL,ntraits=NULL,logy_factorial=NULL,
 #' position, according to the covariates order, where you want to include it.
 #' The default values are list(TRUE,0).
 #' @param a0 Shape parameter for the Gamma prior distribution of the dispersion parameter r
-#' in the BN model, r ~ Gamma(shape = a0, rate = b0).
-#' @param b0 Rate parameter for the Gamma prior distribution of the dispersion parameter r
-#' in the BN model, r ~ Gamma(shape = a0, rate = b0).
+#' in the BN model, r ~ Gamma(shape = a0, rate = h).
+#' @param b0 Shape parameter for the Gamma prior distribution of the rate parameter h
+#' in the BN model, h ~ Gamma(shape = b0, rate = g0).			   
+#' @param g0 Rate parameter for the Gamma prior distribution of the rate parameter h
+#' in the BN model, h ~ Gamma(shape = b0, rate = g0).
 #' @param verbose Used to show (TRUE) or not (FALSE) the progress of iterations
 #' in the Gibbs Sampler; default is FALSE
 #' @param saveAt Used to indicate UTME where to store the samples and to provide
@@ -1819,6 +1821,7 @@ UTME<-function(
     intercept=list(TRUE,0),
 	a0=0.01,
 	b0=0.01,
+	g0=0.01,
     verbose=F,
     saveAt=""
     ){
@@ -2036,7 +2039,8 @@ UTME<-function(
     rv = yStar - rep(0,n)
   }
   if(response_type == "NB"){
-	r <- rgamma(1, shape = a0, scale = 1/b0)
+	h <- rgamma(1, shape = b0, scale = 1/g0)
+	r <- rgamma(1, shape = a0, scale = 1/h)
     L <- rep(0,n)
     y_r = yStar+r
     yr = (yStar - r) / 2
@@ -2626,9 +2630,10 @@ UTME<-function(
 	  rv = rv + log(r)
 	  pi = r/(r+y_tr)
       shape <- a0 + sum(L)
-      rate  <- b0 - sum(log(1 - pi))
+      rate  <- h - sum(log(1 - pi))
       r <- rgamma(1,shape = shape,scale = 1/rate)
 	  L <- sapply(yStar, CRT_function, r = r)
+	  h <- rgamma(1,shape = a0 + b0,scale = 1/(g0+r))
       y_r = yStar+r
       yr = (yStar - r) / 2
       Syr = sum(yStar-r)
@@ -3230,9 +3235,11 @@ UTME<-function(
 #' @param intercept_mt Used to include (TRUE) or not (FALSE) the intercept in
 #' the linear predictor; default is TRUE.
 #' @param a0 Shape parameter for the Gamma prior distribution of the dispersion parameter r
-#' in the BN model, r ~ Gamma(shape = a0, rate = b0).
-#' @param b0 Rate parameter for the Gamma prior distribution of the dispersion parameter r
-#' in the BN model, r ~ Gamma(shape = a0, rate = b0).
+#' in the BN model, r ~ Gamma(shape = a0, rate = h).
+#' @param b0 Shape parameter for the Gamma prior distribution of the rate parameter h
+#' in the BN model, h ~ Gamma(shape = b0, rate = g0).			   
+#' @param g0 Rate parameter for the Gamma prior distribution of the rate parameter h
+#' in the BN model, h ~ Gamma(shape = b0, rate = g0).
 #' @param verbose Used to show (TRUE) or not (FALSE) the progress of iterations
 #' in the Gibbs Sampler; default is FALSE
 #' @param saveAt Used to indicate UTME where to store the samples and to provide
@@ -3444,8 +3451,9 @@ MTME<-function(
     rv = yStar - matrix(0,nrow = n,ncol = ntraits)
   }
   if(response_type == "NB"){
-    L <- matrix(0,nrow = n,ncol = ntraits)
-    r <- rgamma(ntraits, shape = a0, scale = 1/b0)
+	h <- rgamma(ntraits, shape = b0, scale = 1/g0)
+    r <- rgamma(ntraits, shape = a0, scale = 1/h)
+	L <- matrix(0,nrow = n,ncol = ntraits)
 	y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
     yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
     yr = (yminusr) / 2
@@ -3941,11 +3949,13 @@ MTME<-function(
       for(t in 1:T){  
       	shape <- a0 + sum(L[, t])
     
-    	rate <- b0 - sum(log(1 - Pi[, t]))
+    	rate <- h[t] - sum(log(1 - Pi[, t]))
     
     	r[t] <- rgamma(1, shape = shape, scale = 1/rate)
     
     	L[, t] <- sapply(yStar[, t], CRT_function, r = r[t])
+
+		h[t] <- rgamma(1, shape = a0 + b0, scale = 1/(g0+r[t]))  
  	  }
 
 	  y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
