@@ -3268,6 +3268,7 @@ MTME<-function(
     intercept_mt=T,
 	a0=0.01,
     b0=0.01,
+	g0=0.01,
     verbose=F,
     saveAt=""
     ){
