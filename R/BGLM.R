@@ -5,12 +5,8 @@ NULL
 #-------------------------------------------------------------------------------
 
 CRT_function <- function(y, r){
-  
   if(y == 0) return(0)
-  if(y == 1) return(1)
-	
   p <- r/(r + 0:(y-1))
-  
   sum(rbinom(y, 1, p))
 }
 
@@ -3942,7 +3938,6 @@ MTME<-function(
 
     if(response_type == "NB"){
       rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+")
-	  #Pi = y_tr/(r+y_tr)
       for(t in 1:T){ 
       	shape <- a0 + sum(L[, t])
     	rate <- h[t] + sum(log1p(y_tr[,t]/r[t]))
