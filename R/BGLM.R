@@ -2625,9 +2625,9 @@ UTME<-function(
 
 	if(response_type == "NB"){
 	  rv = rv + log(r)
-	  pi = y_tr/(r+y_tr)
+	  Pi = y_tr/(r+y_tr)
       shape <- a0 + sum(L)
-      rate <- h - sum(log(1 - pi))
+      rate <- h - sum(log(1 - Pi))
       r <- rgamma(1,shape = shape,scale = 1/rate)
 	  L <- sapply(yStar, CRT_function, r = r)
 	  h <- rgamma(1,shape = a0 + b0,scale = 1/(g0+r))
