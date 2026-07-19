@@ -2041,7 +2041,7 @@ UTME<-function(
   if(response_type == "NB"){
 	h <- 0.01
     L <- rep(0,n)
-	r <- rgamma(1, shape = a0, rate = 1/h)  
+	r <- rgamma(1, shape = a0, scale = 1/h)  
     y_r = yStar+r
     yr = (yStar - r) / 2
     Syr = sum(yStar-r)
@@ -2630,10 +2630,10 @@ UTME<-function(
 	  rv = rv + log(r)
 	  pi = y_tr/(r+y_tr)
       shape <- a0 + sum(L)
-      scale <- h - sum(log(1 - pi))
-      r <- rgamma(1,shape = shape,rate = 1/scale)
+      rate <- h - sum(log(1 - pi))
+      r <- rgamma(1,shape = shape,scale = 1/rate)
 	  L <- sapply(yStar, CRT_function, r = r)
-	  h <- rgamma(1,shape = a0 + b0,rate = 1/(g0+r))
+	  h <- rgamma(1,shape = a0 + b0,scale = 1/(g0+r))
       y_r = yStar+r
       yr = (yStar - r) / 2
       Syr = sum(yStar-r)
@@ -3454,7 +3454,7 @@ MTME<-function(
   if(response_type == "NB"){
 	h <- rep(0.01,ntraits)
 	L <- matrix(0,nrow = n,ncol = ntraits)
-	r <- rgamma(ntraits, shape = a0, rate = 1/h)  
+	r <- rgamma(ntraits, shape = a0, scale = 1/h)  
 	y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
     yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
     yr = (yminusr) / 2
@@ -3950,13 +3950,13 @@ MTME<-function(
       for(t in 1:T){  
       	shape <- a0 + sum(L[, t])
     
-    	scale <- h[t] - sum(log(1 - Pi[, t]))
+    	rate <- h[t] - sum(log(1 - Pi[, t]))
     
-    	r[t] <- rgamma(1, shape = shape, rate = 1/scale)
+    	r[t] <- rgamma(1, shape = shape, scale = 1/rate)
     
     	L[, t] <- sapply(yStar[, t], CRT_function, r = r[t])
 
-		h[t] <- rgamma(1, shape = a0 + b0, rate = 1/(g0+r[t]))  
+		h[t] <- rgamma(1, shape = a0 + b0, scale = 1/(g0+r[t]))  
  	  }
 
 	  y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
