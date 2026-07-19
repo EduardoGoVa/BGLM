@@ -3897,7 +3897,7 @@ MTME<-function(
     }
 
 	if(response_type == "NB"){
-      rvNB = rv + log(r)
+      rvNB = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+")
       y_tr = exp(rvNB)
       if(nNa>0){
 		size_vec <- rep(r, each = nNa)
