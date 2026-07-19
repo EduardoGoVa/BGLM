@@ -3454,7 +3454,8 @@ MTME<-function(
     Syr = colSums(yminusr)
     post_r = rep(0,ntraits)
     post_r2 = rep(0,ntraits)
-    rv = matrix(0,nrow = n,ncol = ntraits) - log(r)
+	rv_1 = matrix(0,nrow = n,ncol = ntraits)
+    rv = sweep(x=rv_1,MARGIN=2,STATS=log(r),FUN="-")
   }
   if(response_type == "Poisson"){
     r = (yStar+1) * 10^(rcontrol)
@@ -3482,7 +3483,7 @@ MTME<-function(
       # Equal weights QMC
       gh_weights_mult<-rep(1 / Q,Q)
     }
-    U = matrix(0,nrow = n,ncol = ntraits);
+    U = matrix(0,nrow = n,ncol = ntraits)
     r = ((1/colMeans(yStar))+1) * 10^(rcontrol)
     y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
     yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
@@ -4260,8 +4261,8 @@ MTME<-function(
   }
 
   if(response_type == "NB"){
-    fit$logLikAtPostMean = fllp_NB_multi(rv=rv_mean[NoWhichNa,]-log(post_r),
-                                        y=y[NoWhichNa,],r=post_r,ntraits=ntraits)
+    rv1 = sweep(x=rv_mean[NoWhichNa,],MARGIN=2,STATS=log(post_r),FUN="-")
+	fit$logLikAtPostMean = fllp_NB_multi(rv=rv1,y=y[NoWhichNa,],r=post_r,ntraits=ntraits)
     fit$pD = -2 * (post_logLik - fit$logLikAtPostMean)
     fit$DIC = fit$pD - 2 * post_logLik
     fit$y_train = y_pred[NoWhichNa,]
