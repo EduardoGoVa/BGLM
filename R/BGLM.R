@@ -1705,7 +1705,7 @@ fllp_NB_multi<-function(rv=NULL,y=NULL,r=NULL,ntraits=NULL)
   mu = exp(rv + log(r))
   loglik_total = 0
   for (i in 1:ntraits) {
-    loglik_total = loglik_total + sum(dnbinom(y[,i],size=r[i],mu=P[,i],log=TRUE))
+    loglik_total = loglik_total + sum(dnbinom(y[,i],size=r[i],mu=mu[,i],log=TRUE))
   }
 
   return(loglik_total)
