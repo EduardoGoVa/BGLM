@@ -3445,7 +3445,7 @@ MTME<-function(
     rv = yStar - matrix(0,nrow = n,ncol = ntraits)
   }
   if(response_type == "NB"){
-	h <- rep(0.01,ntraits)
+	h <- 0.01
 	L <- matrix(0,nrow = n,ncol = ntraits)
 	r <- rep(0.01,ntraits)  
 	y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
@@ -3943,10 +3943,10 @@ MTME<-function(
       rate  <- h + colSums(log1p(sweep(y_tr, 2, r, "/")))
 	  r <- rgamma(ntraits, shape = shape, rate = rate)
 	  for(t in 1:ntraits){
-        L[, t] <- sapply(yStar[, t], CRT_function, r = r[t]) 
-		print(L)
+        L[, t] <- sapply(yStar[, t], CRT_function, r = r[t])
  	  }	
-	  h <- rgamma(ntraits, shape = a0 + b0, rate = g0 + r)
+	  h <- rgamma(1,shape = b0 + a0 * ntraits, rate  = g0 + sum(r))
+	  #h <- rgamma(ntraits, shape = a0 + b0, rate = g0 + r)
 	  y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
       yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
       yr = (yminusr) / 2
