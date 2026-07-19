@@ -7,7 +7,8 @@ NULL
 CRT_function <- function(y, r){
   
   if(y == 0) return(0)
-  
+  if(y == 1) return(1)
+	
   p <- r/(r + 0:(y-1))
   
   sum(rbinom(y, 1, p))
