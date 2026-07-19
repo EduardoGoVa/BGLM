@@ -2628,7 +2628,7 @@ UTME<-function(
 
 	if(response_type == "NB"){
 	  rv = rv + log(r)
-	  pi = r/(r+y_tr)
+	  pi = y_tr/(r+y_tr)
       shape <- a0 + sum(L)
       scale <- h - sum(log(1 - pi))
       r <- rgamma(1,shape = shape,rate = 1/scale)
@@ -3946,7 +3946,7 @@ MTME<-function(
 
     if(response_type == "NB"){
       rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+")
-	  Pi = r/(r+y_tr)
+	  Pi = y_tr/(r+y_tr)
       for(t in 1:T){  
       	shape <- a0 + sum(L[, t])
     
