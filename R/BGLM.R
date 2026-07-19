@@ -2039,9 +2039,9 @@ UTME<-function(
     rv = yStar - rep(0,n)
   }
   if(response_type == "NB"){
-	h <- 0
-	r <- 0
+	h <- 0.01
     L <- rep(0,n)
+	r <- rgamma(1, shape = a0, scale = 1/h)  
     y_r = yStar+r
     yr = (yStar - r) / 2
     Syr = sum(yStar-r)
@@ -3452,9 +3452,9 @@ MTME<-function(
     rv = yStar - matrix(0,nrow = n,ncol = ntraits)
   }
   if(response_type == "NB"){
-	h <- rep(0,ntraits)
-    r <- rep(0,ntraits)
+	h <- rep(0.01,ntraits)
 	L <- matrix(0,nrow = n,ncol = ntraits)
+	r <- rgamma(ntraits, shape = a0, scale = 1/h)  
 	y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
     yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
     yr = (yminusr) / 2
