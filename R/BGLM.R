@@ -2630,8 +2630,10 @@ UTME<-function(
 	  L <- sapply(yStar, CRT_function, r = r)
 	  h <- rgamma(1,shape = a0 + b0,scale = 1/(g0+r))
       shape <- a0 + sum(L)
+	  print(shape)
       rate <- h - sum(log(1 - Pi))
-      r <- rgamma(1,shape = shape,scale = 1/rate)
+      print(rate)
+	  r <- rgamma(1,shape = shape,scale = 1/rate)
       y_r = yStar+r
       yr = (yStar - r) / 2
       Syr = sum(yStar-r)
