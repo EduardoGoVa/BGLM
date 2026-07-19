@@ -2626,7 +2626,7 @@ UTME<-function(
       rate <- h + sum(log1p(y_tr/r))
 	  r <- rgamma(1,shape = shape,rate = rate)
 	  L <- sapply(yStar, CRT_function, r = r)
-	  h <- rgamma(1,shape = a0 + b0,rate = g0+r)
+	  h <- rgamma(1,shape = a0 + b0,rate = g0 + r)
 	  y_r = yStar+r
       yr = (yStar - r) / 2
       Syr = sum(yStar-r)
@@ -3445,7 +3445,7 @@ MTME<-function(
     rv = yStar - matrix(0,nrow = n,ncol = ntraits)
   }
   if(response_type == "NB"){
-	h <- 0.01
+	h <- rep(0.01,ntraits)
 	L <- matrix(0,nrow = n,ncol = ntraits)
 	r <- rep(0.01,ntraits)  
 	y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
@@ -3945,8 +3945,7 @@ MTME<-function(
 	  for(t in 1:ntraits){
         L[, t] <- sapply(yStar[, t], CRT_function, r = r[t])
  	  }	
-	  h <- rgamma(1,shape = b0 + a0 * ntraits, rate  = g0 + sum(r))
-	  #h <- rgamma(ntraits, shape = a0 + b0, rate = g0 + r)
+	  h <- rgamma(ntraits, shape = a0 + b0, rate = g0 + r)
 	  y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
       yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
       yr = (yminusr) / 2
