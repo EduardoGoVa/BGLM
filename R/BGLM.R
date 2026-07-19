@@ -3901,7 +3901,8 @@ MTME<-function(
       y_tr = exp(rvNB)
       if(nNa>0){
 		size_vec <- rep(r, each = nNa)
-        yStar[!NoWhichNa,] = matrix(rnbinom(n=nNa*ntraits,size=size_vec,mu=as.vector(y_tr)),nrow=nNa,ncol=ntraits)
+		rp = y_tr[!NoWhichNa,]
+        yStar[!NoWhichNa,] = matrix(rnbinom(n=nNa*ntraits,size=size_vec,mu=as.vector(rp)),nrow=nNa,ncol=ntraits)
       }
       loglik = fllp_NB_multi(rv=rv[NoWhichNa,],y=y[NoWhichNa,],r=r,ntraits = ntraits)
     }
@@ -3938,14 +3939,13 @@ MTME<-function(
 
     if(response_type == "NB"){
       rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+")
-      for(t in 1:T){ 
+      for(t in 1:ntraits){ 
       	shape <- a0 + sum(L[, t])
     	rate <- h[t] + sum(log1p(y_tr[,t]/r[t]))
     	r[t] <- rgamma(1, shape = shape, rate = rate)
         L[, t] <- sapply(yStar[, t], CRT_function, r = r[t])
-		h[t] <- rgamma(1, shape = a0 + b0, rate = g0+r[t]) 
+		h[t] <- rgamma(1, shape = a0 + b0, rate = g0 + r[t]) 
  	  }
-
 	  y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
       yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
       yr = (yminusr) / 2
