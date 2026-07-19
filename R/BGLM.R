@@ -3454,8 +3454,7 @@ MTME<-function(
     Syr = colSums(yminusr)
     post_r = rep(0,ntraits)
     post_r2 = rep(0,ntraits)
-	rv_1 = matrix(0,nrow = n,ncol = ntraits)
-    rv = sweep(x=rv_1,MARGIN=2,STATS=log(r),FUN="-")
+	rv = matrix(-log(r), nrow = n, ncol = ntraits, byrow = TRUE)
   }
   if(response_type == "Poisson"){
     r = (yStar+1) * 10^(rcontrol)
@@ -3945,6 +3944,7 @@ MTME<-function(
 	  r <- rgamma(ntraits, shape = shape, rate = rate)
 	  for(t in 1:ntraits){
         L[, t] <- sapply(yStar[, t], CRT_function, r = r[t]) 
+		print(L)
  	  }	
 	  h <- rgamma(ntraits, shape = a0 + b0, rate = g0 + r)
 	  y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
