@@ -3454,7 +3454,7 @@ MTME<-function(
     Syr = colSums(yminusr)
     post_r = rep(0,ntraits)
     post_r2 = rep(0,ntraits)
-    rv = sweep(x=U,MARGIN=2,STATS=log(r),FUN="-")
+    rv = matrix(0,nrow = n,ncol = ntraits) - log(r)
   }
   if(response_type == "Poisson"){
     r = (yStar+1) * 10^(rcontrol)
