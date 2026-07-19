@@ -2626,12 +2626,11 @@ UTME<-function(
 
 	if(response_type == "NB"){
 	  rv = rv + log(r)
-	  Pi = y_tr/(r+y_tr)
       shape <- a0 + sum(L)
-      rate <- h - sum(log(1 - Pi))
-	  r <- rgamma(1,shape = shape,scale = 1/rate)
+      rate <- h + sum(log1p(y_tr/r))
+	  r <- rgamma(1,shape = shape,rate = rate)
       L <- sapply(yStar, CRT_function, r = r)
-	  h <- rgamma(1,shape = a0 + b0,scale = 1/(g0+r))
+	  h <- rgamma(1,shape = a0 + b0,rate = g0+r)
 	  y_r = yStar+r
       yr = (yStar - r) / 2
       Syr = sum(yStar-r)
@@ -3943,13 +3942,13 @@ MTME<-function(
 
     if(response_type == "NB"){
       rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+")
-	  Pi = y_tr/(r+y_tr)
+	  #Pi = y_tr/(r+y_tr)
       for(t in 1:T){ 
       	shape <- a0 + sum(L[, t])
-    	rate <- h[t] - sum(log(1 - Pi[, t]))
-    	r[t] <- rgamma(1, shape = shape, scale = 1/rate)
+    	rate <- h[t] + sum(log1p(y_tr[,t]/r[t]))
+    	r[t] <- rgamma(1, shape = shape, rate = rate)
         L[, t] <- sapply(yStar[, t], CRT_function, r = r[t])
-		h[t] <- rgamma(1, shape = a0 + b0, scale = 1/(g0+r[t])) 
+		h[t] <- rgamma(1, shape = a0 + b0, rate = g0+r[t]) 
  	  }
 
 	  y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
