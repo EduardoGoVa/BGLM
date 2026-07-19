@@ -3940,13 +3940,13 @@ MTME<-function(
 
     if(response_type == "NB"){
       rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+")
-      for(t in 1:ntraits){ 
-      	shape <- a0 + sum(L[, t])
-    	rate <- h[t] + sum(log1p(y_tr[,t]/r[t]))
-    	r[t] <- rgamma(1, shape = shape, rate = rate)
-        L[, t] <- sapply(yStar[, t], CRT_function, r = r[t])
-		h[t] <- rgamma(1, shape = a0 + b0, rate = g0 + r[t]) 
- 	  }
+	  shape <- a0 + colSums(L)
+      rate  <- h + colSums(log1p(sweep(y_tr, 2, r, "/")))
+	  r <- rgamma(ntraits, shape = shape, rate = rate)
+	  for(t in 1:ntraits){
+        L[, t] <- sapply(yStar[, t], CRT_function, r = r[t]) 
+ 	  }	
+	  h <- rgamma(ntraits, shape = a0 + b0, rate = g0 + r)
 	  y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
       yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
       yr = (yminusr) / 2
