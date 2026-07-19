@@ -1698,19 +1698,17 @@ fllp_DLN_multi<-function(y = NULL,n = NULL,ntraits = NULL,a = NULL,b = NULL,
 # Posterior Log-likelihood for NB-UT model
 fllp_NB<-function(rv=NULL,y=NULL,r=NULL)
 {
-  mu = exp(rv + log(r)) 
-  P = mu/(r+mu)
-  return(sum(dnbinom(y,size=r,prob=P,log=TRUE)))
+  mu = exp(rv + log(r))
+  return(sum(dnbinom(y,size=r,mu=mu,log=TRUE)))
 }
 
 # Posterior Log-likelihood for NB-MT model
 fllp_NB_multi<-function(rv=NULL,y=NULL,r=NULL,ntraits=NULL)
 {
   mu = exp(rv + log(r))
-  P = mu/(r+mu)
   loglik_total = 0
   for (i in 1:ntraits) {
-    loglik_total = loglik_total + sum(dnbinom(y[,i],r[i],P[,i],log=TRUE))
+    loglik_total = loglik_total + sum(dnbinom(y[,i],size=r[i],mu=P[,i],log=TRUE))
   }
 
   return(loglik_total)
@@ -2563,9 +2561,8 @@ UTME<-function(
 	if(response_type == "NB"){
       rvNB = rv + log(r)
       y_tr = exp(rvNB)
-	  P = y_tr/(r+y_tr)
       if(nNa>0){
-        yStar[whichNa] = rnbinom(n=nNa,size=r,prob=P[whichNa])
+        yStar[whichNa] = rnbinom(n=nNa,size=r,mu=y_tr[whichNa])
 
         #Save the posterior samples
         write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
@@ -3906,10 +3903,9 @@ MTME<-function(
 	if(response_type == "NB"){
       rvNB = rv + log(r)
       y_tr = exp(rvNB)
-	  P = y_tr/(r+y_tr)
       if(nNa>0){
 		size_vec <- rep(r, each = nNa)
-        yStar[!NoWhichNa,] = matrix(rnbinom(n=nNa*ntraits,size=size_vec,prob=as.vector(P)),nrow=nNa,ncol=ntraits)
+        yStar[!NoWhichNa,] = matrix(rnbinom(n=nNa*ntraits,size=size_vec,mu=as.vector(y_tr)),nrow=nNa,ncol=ntraits)
       }
       loglik = fllp_NB_multi(rv=rv[NoWhichNa,],y=y[NoWhichNa,],r=r,ntraits = ntraits)
     }
