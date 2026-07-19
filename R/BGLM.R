@@ -2625,14 +2625,9 @@ UTME<-function(
     loglik<-fllp_fun()
 
 	if(response_type == "NB"){
-	  print(sum(L))
-	  print(h)
-	  print(r)
 	  rv = rv + log(r)
       shape <- a0 + sum(L)
       rate <- h + sum(log1p(y_tr/r))
-	  print(shape)
-	  print(rate)
 	  r <- rgamma(1,shape = shape,rate = rate)
 	  L <- sapply(yStar, CRT_function, r = r)
 	  h <- rgamma(1,shape = a0 + b0,rate = g0+r)
