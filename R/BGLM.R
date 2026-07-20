@@ -3933,9 +3933,12 @@ MTME<-function(
 	if(response_type == "NB"){
       rvNB = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+")
       y_tr = exp(rvNB)
+	  print(y_tr)
       if(nNa>0){
 		size_vec <- rep(r, each = nNa)
 		rp = y_tr[!NoWhichNa,]
+		print(size_vec)
+		print(rp)
         yStar[!NoWhichNa,] = matrix(rnbinom(n=nNa*ntraits,size=size_vec,mu=as.vector(rp)),nrow=nNa,ncol=ntraits)
 		print(yStar[!NoWhichNa,])
       }
