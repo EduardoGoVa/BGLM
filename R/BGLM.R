@@ -1785,12 +1785,18 @@ fllp_PLN_multi_R<-function(y=NULL,n=NULL,ntraits=NULL,logy_factorial=NULL,
 #' linear predictor; in case you specify FALSE, the second argument assigns the
 #' position, according to the covariates order, where you want to include it.
 #' The default values are list(TRUE,0).
-#' @param a0 Shape parameter for the Gamma prior distribution of the dispersion parameter r
-#' in the BN model, r ~ Gamma(shape = a0, rate = h).
-#' @param b0 Shape parameter for the Gamma prior distribution of the rate parameter h
-#' in the BN model, h ~ Gamma(shape = b0, rate = g0).			   
-#' @param g0 Rate parameter for the Gamma prior distribution of the rate parameter h
-#' in the BN model, h ~ Gamma(shape = b0, rate = g0).
+#' @param FIXED_r Logical. If TRUE, a fixed Gamma prior is used for the NB dispersion
+#' parameter,
+#' r ~ Gamma(shape = a0, rate = c0).
+#' If FALSE, a hierarchical prior is used,
+#' r ~ Gamma(shape = a0, rate = h),
+#' h ~ Gamma(shape = b0, rate = g0).
+#' @param a0 Shape parameter of the Gamma prior distribution for the NB dispersion
+#' parameter r.
+#' @param c0 Rate parameter of the Gamma prior distribution for the NB dispersion
+#' parameter r when `FIXED_r = TRUE`.
+#' @param b0 Shape parameter of the Gamma prior distribution for the hyperparameter h.
+#' @param g0 Rate parameter of the Gamma prior distribution for the hyperparameter h.
 #' @param verbose Used to show (TRUE) or not (FALSE) the progress of iterations
 #' in the Gibbs Sampler; default is FALSE
 #' @param saveAt Used to indicate UTME where to store the samples and to provide
@@ -1814,7 +1820,9 @@ UTME<-function(
     rcontrol=1.15,
     type_prediction="mean",
     intercept=list(TRUE,0),
+	FIXED_r = TRUE,
 	a0=0.01,
+	c0=0.01,
 	b0=0.01,
 	g0=0.01,
     verbose=F,
@@ -2034,9 +2042,14 @@ UTME<-function(
     rv = yStar - rep(0,n)
   }
   if(response_type == "NB"){
-	h <- 0.01
-    L <- rep(0,n)
-	r <- rgamma(1, shape = a0, rate = h) 
+	if(FIXED_r){
+	    r <- rgamma(1, shape = a0, rate = c0) 
+	}
+	else{
+		h <- 0.01
+	    r <- rgamma(1, shape = a0, rate = h) 
+	}
+	L <- rep(0,n)
     y_r = yStar+r
     yr = (yStar - r) / 2
     Syr = sum(yStar-r)
@@ -2623,10 +2636,17 @@ UTME<-function(
 	if(response_type == "NB"){
 	  rv = rv + log(r)
       shape <- a0 + sum(L)
-      rate <- h + sum(log1p(y_tr/r))
+	  if(FIXED_r){
+		rate <- c0 + sum(log1p(y_tr/r))  
+	  }
+	  else{
+		rate <- h + sum(log1p(y_tr/r))  
+	  }
 	  r <- rgamma(1, shape = shape, rate = rate)
 	  L <- sapply(yStar, CRT_function, r = r)
-	  h <- rgamma(1,shape = a0 + b0,rate = g0 + r)
+	  if(!FIXED_r){
+		h <- rgamma(1,shape = a0 + b0,rate = g0 + r)  
+	  }
 	  y_r = yStar+r
       yr = (yStar - r) / 2
       Syr = sum(yStar-r)
@@ -3227,12 +3247,18 @@ UTME<-function(
 #' used for the approximation of the log-likelihood of the Multivariate DLN model.
 #' @param intercept_mt Used to include (TRUE) or not (FALSE) the intercept in
 #' the linear predictor; default is TRUE.
-#' @param a0 Shape parameter for the Gamma prior distribution of the dispersion parameter r
-#' in the BN model, r ~ Gamma(shape = a0, rate = h).
-#' @param b0 Shape parameter for the Gamma prior distribution of the rate parameter h
-#' in the BN model, h ~ Gamma(shape = b0, rate = g0).			   
-#' @param g0 Rate parameter for the Gamma prior distribution of the rate parameter h
-#' in the BN model, h ~ Gamma(shape = b0, rate = g0).
+#' @param FIXED_r Logical. If TRUE, a fixed Gamma prior is used for the NB dispersion
+#' parameter,
+#' r ~ Gamma(shape = a0, rate = c0).
+#' If FALSE, a hierarchical prior is used,
+#' r ~ Gamma(shape = a0, rate = h),
+#' h ~ Gamma(shape = b0, rate = g0).
+#' @param a0 Shape parameter of the Gamma prior distribution for the NB dispersion
+#' parameter r.
+#' @param c0 Rate parameter of the Gamma prior distribution for the NB dispersion
+#' parameter r when `FIXED_r = TRUE`.
+#' @param b0 Shape parameter of the Gamma prior distribution for the hyperparameter h.
+#' @param g0 Rate parameter of the Gamma prior distribution for the hyperparameter h.
 #' @param verbose Used to show (TRUE) or not (FALSE) the progress of iterations
 #' in the Gibbs Sampler; default is FALSE
 #' @param saveAt Used to indicate UTME where to store the samples and to provide
@@ -3259,7 +3285,9 @@ MTME<-function(
     Thin_latent=1,
     n_QMCpoints=10,
     intercept_mt=T,
+	FIXED_r = TRUE,
 	a0=0.01,
+	c0=0.01,
     b0=0.01,
 	g0=0.01,
     verbose=F,
@@ -3445,9 +3473,15 @@ MTME<-function(
     rv = yStar - matrix(0,nrow = n,ncol = ntraits)
   }
   if(response_type == "NB"){
-	h <- rep(0.01,ntraits)
+	if(FIXED_r){
+      h <- rep(0.01,ntraits)
+	  r <- rgamma(ntraits, shape = a0, rate = h)
+	}
+	else{
+	  c0 <- rep(0.01,ntraits)	
+	  r <- rgamma(ntraits, shape = a0, rate = c0)
+	}
 	L <- matrix(0,nrow = n,ncol = ntraits)
-	r <- rgamma(ntraits, shape = a0, rate = h)
 	y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
     yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
     yr = (yminusr) / 2
@@ -3940,12 +3974,20 @@ MTME<-function(
     if(response_type == "NB"){
       rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+")
 	  shape <- a0 + colSums(L)
-      rate  <- h + colSums(log1p(sweep(y_tr, 2, r, "/")))
+
+	  if(FIXED_r){
+        rate  <- c0 + colSums(log1p(sweep(y_tr, 2, r, "/")))
+	  }
+	  else{
+	    rate  <- h + colSums(log1p(sweep(y_tr, 2, r, "/")))	  
+	  }
 	  r <- rgamma(ntraits, shape = shape, rate = rate)
 	  for(t in 1:ntraits){
         L[, t] <- sapply(yStar[, t], CRT_function, r = r[t])
  	  }	
-	  h <- rgamma(ntraits, shape = a0 + b0, rate = g0 + r)
+	  if(!FIXED_r){
+	    h <- rgamma(ntraits, shape = a0 + b0, rate = g0 + r)
+	  }
 	  y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
       yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
       yr = (yminusr) / 2
