@@ -3287,7 +3287,7 @@ MTME<-function(
     intercept_mt=T,
 	FIXED_r = TRUE,
 	a0=0.01,
-	c0=0.01,
+	c0=NULL,
     b0=0.01,
 	g0=0.01,
     verbose=F,
@@ -3474,12 +3474,12 @@ MTME<-function(
   }
   if(response_type == "NB"){
 	if(FIXED_r){
-      h <- rep(0.01,ntraits)
-	  r <- rgamma(ntraits, shape = a0, rate = h)
+	  if (is.null(c0)) { c0 <- rep(0.01,ntraits) }
+	  r <- rgamma(ntraits, shape = a0, rate = c0)
 	}
 	else{
-	  c0 <- rep(0.01,ntraits)	
-	  r <- rgamma(ntraits, shape = a0, rate = c0)
+	  h <- rep(0.01,ntraits)
+	  r <- rgamma(ntraits, shape = a0, rate = h)	
 	}
 	L <- matrix(0,nrow = n,ncol = ntraits)
 	y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
@@ -3976,10 +3976,10 @@ MTME<-function(
 	  shape <- a0 + colSums(L)
 
 	  if(FIXED_r){
-        rate  <- c0 + colSums(log1p(sweep(y_tr, 2, r, "/")))
+        rate <- c0 + colSums(log1p(sweep(y_tr, 2, r, "/")))
 	  }
 	  else{
-	    rate  <- h + colSums(log1p(sweep(y_tr, 2, r, "/")))	  
+	    rate <- h + colSums(log1p(sweep(y_tr, 2, r, "/")))	  
 	  }
 	  r <- rgamma(ntraits, shape = shape, rate = rate)
 	  for(t in 1:ntraits){
