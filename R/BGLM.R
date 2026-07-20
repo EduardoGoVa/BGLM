@@ -1758,7 +1758,7 @@ fllp_PLN_multi_R<-function(y=NULL,n=NULL,ntraits=NULL,logy_factorial=NULL,
 #' Fit a Bayesian Uni-Trait Multi-Environment Regression Model
 #'
 #' Fits a Bayesian Uni-trait and Multi-environment model using MCMC sampling.
-#' Supports Gaussian, Poisson, DLN and PLN responses.
+#' Supports Gaussian, NB, Poisson, DLN and PLN responses.
 #'
 #' @param ETA List used to specify the linear predictor.
 #' By default it is set to NULL, in which case only the intercept is included.
@@ -3213,7 +3213,7 @@ UTME<-function(
 #' Fit a Bayesian Multi-Trait Multi-Environment Regression Model
 #'
 #' Fits a Bayesian Multi-trait and Multi-environment model using MCMC sampling.
-#' Supports Gaussian, Poisson, DLN and PLN responses.
+#' Supports Gaussian, NB, Poisson, DLN and PLN responses.
 #'
 #' @param ETA List used to specify the linear predictor.
 #' By default it is set to NULL, in which case only the intercept is included.
