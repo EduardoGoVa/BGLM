@@ -2071,12 +2071,12 @@ UTME<-function(
     Q = length(gh$nodes)
     logy_factorial = lgamma(y[obs_idx]+1)
     U = rep(0,n)
-    r = ((1/mean(yStar))+1) * 10^(rcontrol)
+    r = (yStar+1) * 10^(rcontrol)
     y_r = yStar+r
     yr = (yStar - r) / 2
     Syr = sum(yStar-r)
-    post_r = 0
-    post_r2 = 0
+    post_r = rep(0,n)
+    post_r2 = rep(0,n)
     rv = rep(0,n) + U - log(r)
   }
 
@@ -2261,20 +2261,7 @@ UTME<-function(
             }
           }
 
-          if(response_type%in%c("NB","Poisson")){
-            # Sampling from full conditional of Bj's
-            if(ETA[[j]]$update == "scalar"){
-              B = .Call("fBj_P",l,yr,ETA[[j]]$Bv,varBj,rv,ETA[[j]]$X,
-                        ETA[[j]]$X2,n,ETA[[j]]$p,PACKAGE="BGLM")
-            }
-            if(ETA[[j]]$update == "blocks"){
-              B = .Call("fB_P",l,yr,ETA[[j]]$Bv,diag(1/varBj),rv,ETA[[j]]$X,
-                        ETA[[j]]$tX,ETA[[j]]$blocks,ETA[[j]]$nblocks,n,
-                        PACKAGE="BGLM")
-            }
-          }
-
-          if(response_type == "PLN"){
+          if(response_type%in%c("NB","Poisson","PLN")){
             # Sampling from full conditional of Bj's
             if(ETA[[j]]$update == "scalar"){
               B = .Call("fBj_P",l,yr,ETA[[j]]$Bv,varBj,rv,ETA[[j]]$X,
@@ -2609,7 +2596,7 @@ UTME<-function(
         #Save the posterior samples
         write(yStar[whichNa],ncolumns = nNa,file = f_y_posterior,append = TRUE)
         write(exp(rvPois[whichNa]+U[whichNa]),ncolumns = nNa,file = f_mu,append = TRUE)
-        write(r,ncolumns = length(r),file = f_r,append = TRUE)
+        write(r[whichNa],ncolumns = nNa,file = f_r,append = TRUE)
         write(varE,ncolumns = length(varE),file = f_varE,append = TRUE)
       }
     }
@@ -2653,19 +2640,10 @@ UTME<-function(
       rv = rv - log(r)
     }
 	  
-    if(response_type == "Poisson"){
+    if(response_type%in%c("Poisson","PLN")){
       rv = rv + log(r)
       Lambda = exp(rv)
       r = (Lambda+1) * 10^(rcontrol)
-      y_r = yStar+r
-      yr = (yStar - r) / 2
-      Syr = sum(yStar-r)
-      rv = rv - log(r)
-    }
-
-    if(response_type == "PLN"){
-      rv = rv + log(r)
-      r = ((1/(exp(varE)-1))+1) * 10^(rcontrol)
       y_r = yStar+r
       yr = (yStar - r) / 2
       Syr = sum(yStar-r)
@@ -2861,13 +2839,7 @@ UTME<-function(
           rv_mean = ( rvNB + (nk - 1) * rv_mean ) / nk
         }
 		  
-        if(response_type == "Poisson"){
-          y_pred = ( y_tr + (nk - 1) * y_pred ) / nk
-          y_pred2 = ( y_tr^2 + (nk - 1) * y_pred2 ) / nk
-          rv_mean = ( rvPois + (nk - 1) * rv_mean ) / nk
-        }
-
-        if(response_type == "PLN"){
+        if(response_type%in%c("Poisson","PLN")){
           y_pred = ( y_tr + (nk - 1) * y_pred ) / nk
           y_pred2 = ( y_tr^2 + (nk - 1) * y_pred2 ) / nk
           rv_mean = ( rvPois + (nk - 1) * rv_mean ) / nk
@@ -3517,14 +3489,13 @@ MTME<-function(
       gh_weights_mult<-rep(1 / Q,Q)
     }
     U = matrix(0,nrow = n,ncol = ntraits)
-    r = ((1/colMeans(yStar))+1) * 10^(rcontrol)
-    y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
-    yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
-    yr = (yminusr) / 2
-    Syr = colSums(yminusr)
-    post_r = rep(0,ntraits)
-    post_r2 = rep(0,ntraits)
-    rv = sweep(x=U,MARGIN=2,STATS=log(r),FUN="-")
+    r = (yStar+1) * 10^(rcontrol)
+    y_r = yStar+r
+    yr = (yStar - r) / 2
+    Syr = colSums(yStar-r)
+    post_r = matrix(0,nrow = n,ncol = ntraits)
+    post_r2 = matrix(0,nrow = n,ncol = ntraits)
+	rv = U - log(r)
   }
 
   fL_fun<-switch(response_type,
@@ -3866,7 +3837,7 @@ MTME<-function(
       Us = .Call("fUi_mtme",l,yr,U,resCov$SigmaEInv,rv,ntraits,n,PACKAGE="BGLM")
       U = Us[[1]]
       rv = Us[[2]]
-      rvPois = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+") - U
+      rvPois = rv + log(r) - U
     }
 
     if(response_type%in%c("DLN","gaussian")){
@@ -3995,7 +3966,7 @@ MTME<-function(
       rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="-")
     }
 									
-    if(response_type == "Poisson"){
+    if(response_type%in%c("Poisson","PLN")){
       rv = rv + log(r)
       Lambda = exp(rv)
       r = (Lambda+1) * 10^(rcontrol)
@@ -4003,17 +3974,6 @@ MTME<-function(
       yr = (yStar - r) / 2
       Syr = colSums(yStar-r)
       rv = rv - log(r)
-    }
-
-    if(response_type == "PLN"){
-      rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="+")
-      Lambda = exp(rv)
-      r = ((1/(exp(diag(resCov$SigmaE))-1))+1) * 10^(rcontrol)
-      y_r = sweep(x=yStar,MARGIN=2,STATS=r,FUN="+")
-      yminusr = sweep(x=yStar,MARGIN=2,STATS=r,FUN="-")
-      yr = (yminusr) / 2
-      Syr = colSums(yminusr)
-      rv = sweep(x=rv,MARGIN=2,STATS=log(r),FUN="-")
     }
 
     if (i > nBurnin)
@@ -4205,13 +4165,7 @@ MTME<-function(
           rv_mean = ( rvNB + (nk - 1) * rv_mean ) / nk
         }
 		  
-        if(response_type == "Poisson"){
-          y_pred = ( y_tr + (nk - 1) * y_pred ) / nk
-          y_pred2 = ( y_tr^2 + (nk - 1) * y_pred2 ) / nk
-          rv_mean = ( rvPois + (nk - 1) * rv_mean ) / nk
-        }
-
-        if(response_type == "PLN"){
+        if(response_type%in%c("Poisson","PLN")){
           y_pred = ( y_tr + (nk - 1) * y_pred ) / nk
           y_pred2 = ( y_tr^2 + (nk - 1) * y_pred2 ) / nk
           rv_mean = ( rvPois + (nk - 1) * rv_mean ) / nk
