@@ -2642,8 +2642,7 @@ UTME<-function(
 	  
     if(response_type%in%c("Poisson","PLN")){
       rv = rv + log(r)
-      Lambda = exp(rv)
-      r = (Lambda+1) * 10^(rcontrol)
+      r = (y_tr+1) * 10^(rcontrol)
       y_r = yStar+r
       yr = (yStar - r) / 2
       Syr = sum(yStar-r)
@@ -3968,8 +3967,7 @@ MTME<-function(
 									
     if(response_type%in%c("Poisson","PLN")){
       rv = rv + log(r)
-      Lambda = exp(rv)
-      r = (Lambda+1) * 10^(rcontrol)
+      r = (y_tr+1) * 10^(rcontrol)
       y_r = yStar+r
       yr = (yStar - r) / 2
       Syr = colSums(yStar-r)
